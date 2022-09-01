@@ -33,7 +33,7 @@ uint8_t n2;
 
 
 
-void m95_power_on(void)
+void m95_power_on(void) // функция включения питания
 {
 	HAL_GPIO_WritePin(GPIOH, GPIO_PIN_6, GPIO_PIN_RESET);
 	HAL_Delay(100);
