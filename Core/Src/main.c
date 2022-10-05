@@ -56,11 +56,24 @@ DMA_HandleTypeDef hdma_usart3_tx;
 DMA_HandleTypeDef hdma_usart3_rx;
 
 osThreadId defaultTaskHandle;
+osMessageQId ModbusQueueHandle;
 osTimerId AT_TimerHandle;
+osMutexId UartMutexHandle;
+osSemaphoreId TransmissionStateHandle;
+osSemaphoreId ReceiveStateHandle;
 /* USER CODE BEGIN PV */
 osThreadId IbuttonTaskHandle;
 osThreadId SecurityTaskHandle;
 osThreadId M95TaskHandle;
+osThreadId ModbusTaskHandle;
+
+osThreadId CurrentID;
+
+uint16_t ID_H = 0; // номер устройства
+uint16_t ID_L = 0; // номер устройства
+
+uint8_t Version_H = 1;  // версия прошивки, старший байт
+uint8_t Version_L = 12; // версия прошивки, младший байт
 
 uint8_t security_state = 0x00;
 RTC_TimeTypeDef security_time;
@@ -69,14 +82,18 @@ RTC_DateTypeDef security_date;
 uint8_t flash[20];
 uint8_t flash1[20];
 
-uint8_t modem_tx_data[100];
-uint8_t modem_rx_data[100];
-uint8_t modem_rx_buffer[100];
-uint8_t modem_rx_number;
+uint8_t modem_tx_data[256];
+uint8_t modem_rx_data[256];
+char modem_rx_buffer[256];
+uint8_t modbus_buffer[256];
+uint8_t modem_rx_number = 0;
+uint8_t modbus_buffer_number = 0;
 
 uint8_t read_rx_state;
 
 char str1[] = "K\r\n";
+
+uint8_t t=0;
 
 /* USER CODE END PV */
 
@@ -95,6 +112,7 @@ void Callback_AT_Timer(void const * argument);
 void ThreadIbuttonTask(void const * argument);
 void ThreadSecurityTask(void const * argument);
 void ThreadM95Task(void const * argument);
+void ThreadModbusTask(void const * argument);
 
 /* USER CODE END PFP */
 
@@ -111,7 +129,7 @@ int _write(int file, char *ptr, int len)
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	//LED_VD4_TOGGLE();
+	osSemaphoreRelease(TransmissionStateHandle);
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -119,17 +137,36 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	modem_rx_buffer[modem_rx_number++] = modem_rx_data[0];
 	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 
+	osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 0);
+	//osSemaphoreRelease(ReceiveStateHandle);
+/*
 	if( modem_rx_data[0] == '\n')
 	{
+		osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 0);
 		osThreadResume(M95TaskHandle);
+		osSemaphoreRelease(ReceiveStateHandle);
 	}
+	else if( modem_rx_data[0] == '>')
+	{
+		osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 0);
+		osSemaphoreRelease(ReceiveStateHandle);
+		//osThreadResume(ModbusTaskHandle);
+	}
+	else
+	{
+		osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 0);
+	}
+*/
 
 
 
 
 }
 
-
+void UART_DMATransmitCplt(DMA_HandleTypeDef *hdma)
+{
+	//LED_VD4_TOGGLE();
+}
 
 /* USER CODE END 0 */
 
@@ -194,9 +231,23 @@ int main(void)
 
   /* USER CODE END 2 */
 
+  /* Create the mutex(es) */
+  /* definition and creation of UartMutex */
+  osMutexDef(UartMutex);
+  UartMutexHandle = osMutexCreate(osMutex(UartMutex));
+
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* definition and creation of TransmissionState */
+  osSemaphoreDef(TransmissionState);
+  TransmissionStateHandle = osSemaphoreCreate(osSemaphore(TransmissionState), 1);
+
+  /* definition and creation of ReceiveState */
+  osSemaphoreDef(ReceiveState);
+  ReceiveStateHandle = osSemaphoreCreate(osSemaphore(ReceiveState), 1);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -210,6 +261,11 @@ int main(void)
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* definition and creation of ModbusQueue */
+  osMessageQDef(ModbusQueue, 16, uint8_t);
+  ModbusQueueHandle = osMessageCreate(osMessageQ(ModbusQueue), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -231,6 +287,9 @@ int main(void)
 
   osThreadDef(M95Task, ThreadM95Task, osPriorityNormal, 0, 128);
   M95TaskHandle = osThreadCreate(osThread(M95Task), NULL);
+
+  osThreadDef(ModbusTask, ThreadModbusTask, osPriorityNormal, 0, 128);
+  ModbusTaskHandle = osThreadCreate(osThread(ModbusTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
@@ -583,7 +642,8 @@ void Callback_AT_Timer(void const * argument)
 {
   /* USER CODE BEGIN Callback_AT_Timer */
 	read_rx_state = NOT_ACTIVE;
-	osThreadResume(M95TaskHandle);
+	LED_VD4_ON();
+	//osThreadResume(M95TaskHandle);
 
   /* USER CODE END Callback_AT_Timer */
 }
