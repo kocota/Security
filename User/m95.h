@@ -70,28 +70,34 @@
 #define IBUTTON_COMPLETE_7_REG           0x101C // (4124) седьмой байт идентифицированной таблетки
 
 #define CE_303_ERROR_REG                 0x101E // (4126) ошибка опроса счётчика 0 - нет ошибок 1 - таймаут 2 - ошибка данный  10 - при смене номера счётчика
-#define CE_303_CURRENT_A                 0x101F // (4127) ток фазы А
-#define CE_303_CURRENT_B                 0x1020 // (4128) ток фазы В
-#define CE_303_CURRENT_C                 0x1021 // (4129) ток фазы С
-#define CE_303_CURRENT_MIL_A             0x1022 // (4130) милиамперы фаза А
-#define CE_303_CURRENT_MIL_B             0x1023 // (4131) милиамперы фаза В
-#define CE_303_CURRENT_MIL_C             0x1024 // (4132) милиамперы фаза С
-#define CE_303_VOLT_A                    0x1025 // (4133) напряжение фаза А
-#define CE_303_VOLT_B                    0x1026 // (4134) напряжение фаза В
-#define CE_303_VOLT_C                    0x1027 // (4135) напряжение фаза С
-#define CE_303_VOLT_MIL_A                0x1028 // (4136) миливольты фаза А
-#define CE_303_VOLT_MIL_B                0x1029 // (4137) миливольты фаза В
-#define CE_303_VOLT_MIL_C                0x102A // (4138) миливольты фаза С
-#define CE_303_POWER_A                   0x102B // (4139) мощность фаза А
-#define CE_303_POWER_B                   0x102C // (4140) мощность фаза В
-#define CE_303_POWER_C                   0x102D // (4141) мощность фаза С
-#define CE_303_POWER_MIL_A               0x102E // (4142) мощность миливатт фаза А
-#define CE_303_POWER_MIL_B               0x102F // (4143) мощность миливатт фаза В
-#define CE_303_POWER_MIL_C               0x1030 // (4144) мощность миливатт фаза С
+#define CE_303_CURRENT_A_REG             0x101F // (4127) ток фазы А
+#define CE_303_CURRENT_B_REG             0x1020 // (4128) ток фазы В
+#define CE_303_CURRENT_C_REG             0x1021 // (4129) ток фазы С
+#define CE_303_CURRENT_MIL_A_REG         0x1022 // (4130) милиамперы фаза А
+#define CE_303_CURRENT_MIL_B_REG         0x1023 // (4131) милиамперы фаза В
+#define CE_303_CURRENT_MIL_C_REG         0x1024 // (4132) милиамперы фаза С
+#define CE_303_VOLT_A_REG                0x1025 // (4133) напряжение фаза А
+#define CE_303_VOLT_B_REG                0x1026 // (4134) напряжение фаза В
+#define CE_303_VOLT_C_REG                0x1027 // (4135) напряжение фаза С
+#define CE_303_VOLT_MIL_A_REG            0x1028 // (4136) миливольты фаза А
+#define CE_303_VOLT_MIL_B_REG            0x1029 // (4137) миливольты фаза В
+#define CE_303_VOLT_MIL_C_REG            0x102A // (4138) миливольты фаза С
+#define CE_303_POWER_A_REG               0x102B // (4139) мощность фаза А
+#define CE_303_POWER_B_REG               0x102C // (4140) мощность фаза В
+#define CE_303_POWER_C_REG               0x102D // (4141) мощность фаза С
+#define CE_303_POWER_MIL_A_REG           0x102E // (4142) мощность миливатт фаза А
+#define CE_303_POWER_MIL_B_REG           0x102F // (4143) мощность миливатт фаза В
+#define CE_303_POWER_MIL_C_REG           0x1030 // (4144) мощность миливатт фаза С
 
-#define CE_303_TOTAL_POWER_H             0x1031 // (4145) суммарная мощность, старший байт
-#define CE_303_TOTAL_POWER_L             0x1032 // (4146) суммарная мощность, младший байт
-#define CE_303_TOTAL_POWER_MIL           0x1033 // (4147) суммарная мощность миливатт
+#define CE_303_TOTAL_POWER_H_REG         0x1031 // (4145) суммарная мощность, старший байт
+#define CE_303_TOTAL_POWER_L_REG         0x1032 // (4146) суммарная мощность, младший байт
+#define CE_303_TOTAL_POWER_MIL_REG       0x1033 // (4147) суммарная мощность миливатт
+
+#define SIGNAL_LEVEL                     0x1034 // (4148) уровень сигнала
+#define ICCID_NUMBER_REG1                0x1035 // (4149) ICCID номер 1
+#define ICCID_NUMBER_REG2                0x1036 // (4150) ICCID номер 2
+#define ICCID_NUMBER_REG3                0x1037 // (4151) ICCID номер 3
+#define ICCID_NUMBER_REG4                0x1038 // (4152) ICCID номер 4
 
 // -------------------------------------------------------
 

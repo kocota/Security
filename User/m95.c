@@ -60,6 +60,12 @@ uint8_t buf_out1[20];
 uint8_t buf_out2[20];
 uint8_t b;
 
+uint8_t id2[10]; // номер CCID симкарты
+uint64_t id3;
+uint64_t id_temp1;
+
+
+
 unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 
 
@@ -96,6 +102,7 @@ uint8_t AT (void)
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, at, 3);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -104,7 +111,7 @@ uint8_t AT (void)
 	while(read_rx_state == ACTIVE)
 	{
 		//osThreadSuspend(M95TaskHandle);
-		if(strstr(modem_rx_buffer, "OK") != NULL )
+		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -120,6 +127,7 @@ uint8_t AT_CSQ (uint8_t* signal_level)
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, at_csq, 7);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -149,11 +157,57 @@ uint8_t AT_CSQ (uint8_t* signal_level)
 	return AT_ERROR;
 }
 
+uint8_t AT_QCCID ( uint8_t* id  /*uint64_t* id*/) // Команда для для чтения CCID сим карты
+{
+	uint64_t id1[20];
+	char str_out[9];
+	sprintf(str_out, "AT+QCCID\n");
+	read_rx_state = ACTIVE;
+	modem_rx_number = 0;
+	modem_rx_buffer_clear();
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
+	HAL_UART_Transmit_DMA(&huart3, str_out, 9);
+
+	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
+
+	osTimerStart(AT_TimerHandle, 300);
+	while(read_rx_state == ACTIVE)
+	{
+		//osThreadSuspend(M95TaskHandle);
+		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
+		{
+			osTimerStop(AT_TimerHandle);
+			read_rx_state = NOT_ACTIVE;
+
+			for(uint8_t i=0; i<19; i++)
+			{
+				id1[i] = (uint8_t)modem_rx_buffer[10+i] - 48;
+			}
+
+			id1[19] = id1[0]*1000000000000000000 + id1[1]*100000000000000000 + id1[2]*10000000000000000 + id1[3]*1000000000000000 + id1[4]*100000000000000 + id1[5]*10000000000000 + id1[6]*1000000000000 + id1[7]*100000000000 + id1[8]*10000000000 + id1[9]*1000000000 + id1[10]*100000000 + id1[11]*10000000 + id1[12]*1000000 + id1[13]*100000 + id1[14]*10000 + id1[15]*1000 + id1[16]*100 + id1[17]*10 + id1[18];
+
+			*id = (uint8_t)(id1[19]>>56);
+			*(id+1) = (uint8_t)(id1[19]>>48);
+			*(id+2) = (uint8_t)(id1[19]>>40);
+			*(id+3) = (uint8_t)(id1[19]>>32);
+			*(id+4) = (uint8_t)(id1[19]>>24);
+			*(id+5) = (uint8_t)(id1[19]>>16);
+			*(id+6) = (uint8_t)(id1[19]>>8);
+			*(id+7) = (uint8_t)id1[19];
+
+			return AT_OK;
+		}
+
+	}
+	return AT_ERROR;
+}
+
 uint8_t AT_COPS (void)
 {
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, at_cops, 9);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -167,7 +221,7 @@ uint8_t AT_COPS (void)
 			// Здесь должно быть то, что необходимо сделать, если пришло значение "МТС"
 		}
 
-		if(strstr(modem_rx_buffer, "OK") != NULL )
+		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -203,6 +257,7 @@ uint8_t AT_QIOPEN (char* type , uint8_t ip1, uint8_t ip2, uint8_t ip3, uint8_t i
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
 
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str7, n);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -211,13 +266,13 @@ uint8_t AT_QIOPEN (char* type , uint8_t ip1, uint8_t ip2, uint8_t ip3, uint8_t i
 	while(read_rx_state == ACTIVE)
 	{
 		//osThreadSuspend(M95TaskHandle);
-		if( (strstr(modem_rx_buffer, "CONNECT OK") != NULL) || (strstr(modem_rx_buffer, "ALREADY CONNECT") != NULL) )
+		if( (strstr(modem_rx_buffer, "CONNECT OK\r\n") != NULL) || (strstr(modem_rx_buffer, "ALREADY CONNECT\r\n") != NULL) )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return AT_OK;
 		}
-		else if( (strstr(modem_rx_buffer, "CONNECT FAIL") != NULL) )
+		else if( (strstr(modem_rx_buffer, "CONNECT FAIL\r\n") != NULL) )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -240,6 +295,7 @@ uint8_t AT_QISEND (uint8_t* buf, uint16_t length) // maximum length = 1460
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
 
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out, n1);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -255,6 +311,7 @@ uint8_t AT_QISEND (uint8_t* buf, uint16_t length) // maximum length = 1460
 			modem_rx_number = 0;
 			modem_rx_buffer_clear();
 
+			HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 			HAL_UART_Transmit_DMA(&huart3, buf, length);
 
 			osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -264,7 +321,7 @@ uint8_t AT_QISEND (uint8_t* buf, uint16_t length) // maximum length = 1460
 			{
 				//osThreadSuspend(osThreadGetId());
 				//osSemaphoreWait(ReceiveStateHandle, osWaitForever);
-				if( strstr(modem_rx_buffer, "SEND OK") != NULL )
+				if( strstr(modem_rx_buffer, "SEND OK\r\n") != NULL )
 				{
 					osTimerStop(AT_TimerHandle);
 					read_rx_state = NOT_ACTIVE;
@@ -286,6 +343,8 @@ uint8_t AT_QIFGCNT (uint8_t id)
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out1, 13);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -294,13 +353,13 @@ uint8_t AT_QIFGCNT (uint8_t id)
 	while(read_rx_state == ACTIVE)
 	{
 		//osThreadSuspend(M95TaskHandle);
-		if(strstr(modem_rx_buffer, "OK") != NULL )
+		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return AT_OK;
 		}
-		if(strstr(modem_rx_buffer, "ERROR") != NULL )
+		if(strstr(modem_rx_buffer, "ERROR\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -318,6 +377,8 @@ uint8_t AT_QIMUX (uint8_t mode) // Команда для включения ил
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out, 11);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -326,13 +387,13 @@ uint8_t AT_QIMUX (uint8_t mode) // Команда для включения ил
 	while(read_rx_state == ACTIVE)
 	{
 		//osThreadSuspend(M95TaskHandle);
-		if(strstr(modem_rx_buffer, "OK") != NULL )
+		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return AT_OK;
 		}
-		if(strstr(modem_rx_buffer, "ERROR") != NULL )
+		if(strstr(modem_rx_buffer, "ERROR\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -350,6 +411,8 @@ uint8_t AT_QIMODE (uint8_t mode) // Команда для переключени
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out, 12);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -358,13 +421,13 @@ uint8_t AT_QIMODE (uint8_t mode) // Команда для переключени
 	while(read_rx_state == ACTIVE)
 	{
 		//osThreadSuspend(M95TaskHandle);
-		if(strstr(modem_rx_buffer, "OK") != NULL )
+		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return AT_OK;
 		}
-		if(strstr(modem_rx_buffer, "ERROR") != NULL )
+		if(strstr(modem_rx_buffer, "ERROR\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -385,6 +448,8 @@ uint8_t AT_QIREGAPP  (char* apn, char* user, char* password)
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out, n);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -393,13 +458,13 @@ uint8_t AT_QIREGAPP  (char* apn, char* user, char* password)
 	while(read_rx_state == ACTIVE)
 	{
 		//osThreadSuspend(M95TaskHandle);
-		if(strstr(modem_rx_buffer, "OK") != NULL )
+		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return AT_OK;
 		}
-		if(strstr(modem_rx_buffer, "ERROR") != NULL )
+		if(strstr(modem_rx_buffer, "ERROR\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -418,6 +483,8 @@ uint8_t AT_QIACT (void)
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out, 9);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -426,13 +493,13 @@ uint8_t AT_QIACT (void)
 	while(read_rx_state == ACTIVE)
 	{
 		//osThreadSuspend(M95TaskHandle);
-		if(strstr(modem_rx_buffer, "OK") != NULL )
+		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return AT_OK;
 		}
-		if(strstr(modem_rx_buffer, "ERROR") != NULL )
+		if(strstr(modem_rx_buffer, "ERROR\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -450,6 +517,8 @@ uint8_t AT_QIDEACT (void)
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out, 11);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -458,13 +527,13 @@ uint8_t AT_QIDEACT (void)
 	while(read_rx_state == ACTIVE)
 	{
 		//osThreadSuspend(M95TaskHandle);
-		if(strstr(modem_rx_buffer, "OK") != NULL )
+		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return AT_OK;
 		}
-		if(strstr(modem_rx_buffer, "ERROR") != NULL )
+		if(strstr(modem_rx_buffer, "ERROR\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -482,6 +551,8 @@ uint8_t AT_QISTATE (void)
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out, 11);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -490,73 +561,73 @@ uint8_t AT_QISTATE (void)
 	while(read_rx_state == ACTIVE)
 	{
 		//osThreadSuspend(M95TaskHandle);
-		if(strstr(modem_rx_buffer, "IP INITIAL") != NULL )
+		if(strstr(modem_rx_buffer, "IP INITIAL\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return IP_INITIAL;
 		}
-		if(strstr(modem_rx_buffer, "IP START") != NULL )
+		if(strstr(modem_rx_buffer, "IP START\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return IP_START;
 		}
-		if(strstr(modem_rx_buffer, "IP CONFIG") != NULL )
+		if(strstr(modem_rx_buffer, "IP CONFIG\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return IP_CONFIG;
 		}
-		if(strstr(modem_rx_buffer, "IP IND") != NULL )
+		if(strstr(modem_rx_buffer, "IP IND\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return IP_IND;
 		}
-		if(strstr(modem_rx_buffer, "IP GPRSACT") != NULL )
+		if(strstr(modem_rx_buffer, "IP GPRSACT\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return IP_GPRSACT;
 		}
-		if(strstr(modem_rx_buffer, "IP STATUS") != NULL )
+		if(strstr(modem_rx_buffer, "IP STATUS\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return IP_STATUS;
 		}
-		if(strstr(modem_rx_buffer, "TCP CONNECTING") != NULL )
+		if(strstr(modem_rx_buffer, "TCP CONNECTING\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return TCP_CONNECTING;
 		}
-		if(strstr(modem_rx_buffer, "UDP CONNECTING") != NULL )
+		if(strstr(modem_rx_buffer, "UDP CONNECTING\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return UDP_CONNECTING;
 		}
-		if(strstr(modem_rx_buffer, "IP CLOSE") != NULL )
+		if(strstr(modem_rx_buffer, "IP CLOSE\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return IP_CLOSE;
 		}
-		if(strstr(modem_rx_buffer, "CONNECT OK") != NULL )
+		if(strstr(modem_rx_buffer, "CONNECT OK\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return CONNECT_OK;
 		}
-		if(strstr(modem_rx_buffer, "PDP DEACT") != NULL )
+		if(strstr(modem_rx_buffer, "PDP DEACT\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return PDP_DEACT;
 		}
-		if(strstr(modem_rx_buffer, "ERROR") != NULL )
+		if(strstr(modem_rx_buffer, "ERROR\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -574,6 +645,8 @@ uint8_t AT_QIHEAD (uint8_t mode) // функция для включения и�
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out, 12);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -606,6 +679,8 @@ uint8_t AT_QISHOWPT (uint8_t mode) // функция для включения �
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out, 14);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -638,6 +713,8 @@ uint8_t AT_QPOWD (uint8_t mode) // функция отключения пита�
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
+
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 	HAL_UART_Transmit_DMA(&huart3, str_out, 11);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
@@ -677,123 +754,90 @@ void ThreadM95Task(void const * argument)
 	osSemaphoreWait(ReceiveStateHandle, osWaitForever);
 	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 
-	HAL_Delay(1000);
-	while(AT()==AT_ERROR)
-	{
-
-	}
+	HAL_Delay(2000);
+	state = AT();
+	state = AT();
+	state = AT();
 	if(AT()==AT_ERROR)
 	{
 		m95_power_on();
-		//HAL_Delay(10000);
+		HAL_Delay(5000);
 	}
 
+	state = AT();
+	state = AT();
+	state = AT();
 
 
-
-	//osSemaphoreWait(TransmissionStateHandle, osWaitForever);
-	//osMutexRelease(UartMutexHandle);
 
 	for(;;)
 	{
-
-
-
-
-
-/*
+		osMutexWait(UartMutexHandle, osWaitForever);
 		if(AT()==AT_ERROR)
 		{
 			m95_power_on();
-			while(AT()==AT_ERROR)
-			{
-
-			}
-			read_rx_state = ACTIVE;
-			modem_rx_number = 0;
-			modem_rx_buffer_clear();
-			HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
-
-			while(read_rx_state == ACTIVE)
-			{
-				osThreadSuspend(M95TaskHandle);
-				if(strstr(modem_rx_buffer, "Call Ready") != NULL )
-				{
-					HAL_UART_DMAStop(&huart3);
-					read_rx_state = NOT_ACTIVE;
-				}
-
-
-			}
+			//HAL_Delay(10000);
 		}
+		osMutexRelease(UartMutexHandle);
 
-*/
-
-
-		//osMutexRelease(UartMutexHandle);
 		osMutexWait(UartMutexHandle, osWaitForever);
-		//osMutexWait(UartMutexHandle, osWaitForever);
-		//osMutexWait(UartMutexHandle, osWaitForever);
-		//osMutexWait(UartMutexHandle, osWaitForever);
-
 
 		switch(AT_QISTATE())
 		{
 			case IP_INITIAL:
-				//osMutexWait(UartMutexHandle, 0);
+
+				if(	AT_QCCID(&id2[0]) == AT_OK)
+				{
+					fm25v02_fast_write(2*4159, &id2[0], 8);
+				}
+
 				if(AT_QIREGAPP("mts.internet.ru", "mts", "mts") == AT_OK)
 				{
 
 				}
-				//osMutexRelease(UartMutexHandle);
+
 			break;
 			case IP_START:
-				//osMutexWait(UartMutexHandle, 0);
+
 				if(AT_QIACT()==AT_OK)
 				{
 
 				}
-				//osMutexRelease(UartMutexHandle);
+
 			break;
 			case IP_IND:
-				//osMutexWait(UartMutexHandle, 0);
+
 				if(AT_QIDEACT()==AT_OK)
 				{
 
 				}
-				//osMutexRelease(UartMutexHandle);
+
 			break;
 			case IP_GPRSACT:
-				//osMutexWait(UartMutexHandle, 0);
+
 				if( AT_QIOPEN("TCP",195,208,163,67,35050) == AT_OK )
 				{
-					//if (AT_QISEND(&buf_send[0], 9) == AT_OK)
-					//{
-
-					//}
-					//else
-					//{
-						//LED_VD4_ON();
-					//}
 
 				}
-				//osMutexRelease(UartMutexHandle);
+
 			break;
 			case IP_CLOSE:
-				//osMutexWait(UartMutexHandle, 0);
+
 				if( AT_QIOPEN("TCP",195,208,163,67,35050) == AT_OK )
 				{
-					//if (AT_QISEND(&buf_send[0], 9) == AT_OK)
-					//{
-
-					//}
-					//else
-					//{
-						//LED_VD4_ON();
-					//}
 
 				}
-				//osMutexRelease(UartMutexHandle);
+
+			break;
+			case CONNECT_OK:
+				// Если соединение установлено
+
+			break;
+			case AT_ERROR:
+				LED_VD4_TOGGLE();
+			break;
+			default:
+				LED_VD4_TOGGLE();
 			break;
 
 		}
@@ -864,13 +908,15 @@ void ThreadM95Task(void const * argument)
 		//}
 
 		osDelay(1000);
-		//osThreadSuspend(M95TaskHandle);
+
 	}
 }
 
 
 void ThreadModbusTask(void const * argument)
 {
+	uint8_t id1[20]; // номер CCID симкарты
+
 	uint8_t i=0;
 	uint8_t i_max;
 	uint16_t modbus_size;
@@ -1039,28 +1085,46 @@ void ThreadModbusTask(void const * argument)
 
 				break;
 			}
-			if( (i >= i_max) && (i != 0) && (i_max != 0) )
+			if( (i >= i_max) && (i != 0) && (i_max != 0) ) // если число принятых байт соответствует длине соответствующей команды
 			{
 				crc_temp = CRC16(modbus_buffer, i_max-2); // считаем контрольную сумму принятого пакета
 				if( ( ((crc_temp>>8)&0x00FF) == modbus_buffer[i_max-1] ) && ( (crc_temp&0x00FF) == modbus_buffer[i_max-2]) ) // проверяем контрольную сумму принятого пакета
 				{
-					switch(modbus_buffer[1]) // проверяем тип поступившей команды MODBUS
+					switch(modbus_buffer[1]) // проверяем тип поступившей команды MODBUS и формируем соответствующий ответ
 					{
 						case(0x03): // чтение регистра
 
 							modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для чтения
 							modbus_size = (((((uint16_t)modbus_buffer[4])<<8)&0xFF00)|(((uint16_t)modbus_buffer[5])&0xFF)); //  считаем количество регистров для чтения
-							if( modbus_address == 4158 ) //
+							if( modbus_address == SIGNAL_LEVEL ) // Если запрашивается уровень сигнала
 							{
 								osMutexWait(UartMutexHandle, osWaitForever);
 								AT_CSQ(&level);
 								osMutexRelease(UartMutexHandle);
 								fm25v02_write(2*modbus_address, 0);
 								fm25v02_write(2*modbus_address+1, level);
+
+								fm25v02_fast_read( 2*modbus_address , &buf_out[0] , 2*modbus_size); // читаем из памяти необходимое количество регистров
+
+								buf_out1[0] = 0x01;
+								buf_out1[1] = 0x03;
+								buf_out1[2] = 2*modbus_size;
+								for(uint8_t i=0; i<2*modbus_size; i++)
+								{
+									buf_out1[i+3] = buf_out[i];
+								}
+								crc_temp = CRC16(&buf_out1[0], 3+2*modbus_size);
+								buf_out1[2*modbus_size+3] = (uint8_t)(crc_temp&0x00FF);
+								buf_out1[2*modbus_size+4] = (uint8_t)((crc_temp>>8)&0x00FF);
+
+								osMutexWait(UartMutexHandle, osWaitForever);
+								AT_QISEND(&buf_out1[0], 2*modbus_size+5);
+								osMutexRelease(UartMutexHandle);
 							}
+
 							else
 							{
-								fm25v02_fast_read( 2*modbus_address , &buf_out[0] , 2*modbus_size); // читаем из памяти необходимое количество регистров
+								fm25v02_fast_read( 2*modbus_address , &buf_out[0] , 2*modbus_size); // если запрашивается чтение регистров, читаем из памяти необходимое количество регистров
 
 								buf_out1[0] = 0x01;
 								buf_out1[1] = 0x03;

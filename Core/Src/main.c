@@ -91,9 +91,9 @@ uint8_t modbus_buffer_number = 0;
 
 uint8_t read_rx_state;
 
-char str1[] = "K\r\n";
+//char str1[] = "K\r\n";
 
-uint8_t t=0;
+//uint8_t t=0;
 
 /* USER CODE END PV */
 
