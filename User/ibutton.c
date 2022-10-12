@@ -199,6 +199,8 @@ HAL_StatusTypeDef ibutton_read_rom (IbuttonROM_Struct* id)
 // HAL_ERROR - ROM не найден в памяти FRAM
 HAL_StatusTypeDef ibutton_search_rom(IbuttonROM_Struct* id)
 {
+
+	/*
 	uint8_t temp_ibutton_state;
 	uint8_t id_fram[8];
 	uint32_t id_temp_rom_high=0;
@@ -222,6 +224,7 @@ HAL_StatusTypeDef ibutton_search_rom(IbuttonROM_Struct* id)
 		}
 	}
 	return HAL_ERROR;
+	*/
 }
 
 HAL_StatusTypeDef ibutton_write_rom(IbuttonROM_Struct* id)

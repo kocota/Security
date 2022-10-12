@@ -98,6 +98,10 @@
 #define ICCID_NUMBER_REG2                0x1036 // (4150) ICCID номер 2
 #define ICCID_NUMBER_REG3                0x1037 // (4151) ICCID номер 3
 #define ICCID_NUMBER_REG4                0x1038 // (4152) ICCID номер 4
+#define ICCID_NUMBER_REG5                0x1039 // (4153) ICCID номер 5
+#define ICCID_NUMBER_REG6                0x103A // (4154) ICCID номер 6
+#define ICCID_NUMBER_REG7                0x103B // (4155) ICCID номер 7
+#define ICCID_NUMBER_REG8                0x103C // (4156) ICCID номер 8
 
 // -------------------------------------------------------
 

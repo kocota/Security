@@ -71,14 +71,14 @@ void ThreadIbuttonTask(void const * argument)
 
 			if( ibutton_read_rom(&IbuttonROM) == HAL_OK ) // Считываем ROM-код таблетки
 			{
-
+				/*
 				if( ibutton_write_rom(&IbuttonROM) == HAL_OK )
 				{
 					BUZ_ON();
 					HAL_Delay(100);
 					BUZ_OFF();
 				}
-
+				*/
 
 				if( ibutton_search_rom(&IbuttonROM) == HAL_OK )
 				{

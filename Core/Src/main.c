@@ -69,11 +69,9 @@ osThreadId ModbusTaskHandle;
 
 osThreadId CurrentID;
 
-uint16_t ID_H = 0; // номер устройства
-uint16_t ID_L = 0; // номер устройства
 
-uint8_t Version_H = 1;  // версия прошивки, старший байт
-uint8_t Version_L = 12; // версия прошивки, младший байт
+
+
 
 uint8_t security_state = 0x00;
 RTC_TimeTypeDef security_time;
@@ -89,7 +87,7 @@ uint8_t modbus_buffer[256];
 uint8_t modem_rx_number = 0;
 uint8_t modbus_buffer_number = 0;
 
-uint8_t read_rx_state;
+volatile uint8_t read_rx_state;
 
 //char str1[] = "K\r\n";
 
@@ -273,7 +271,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

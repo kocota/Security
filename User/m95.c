@@ -24,17 +24,23 @@ extern osMessageQId ModbusQueueHandle;
 extern osMutexId UartMutexHandle;
 extern osThreadId CurrentID;
 
-extern uint16_t ID_H; // номер устройства
-extern uint16_t ID_L; // номер устройства
+uint8_t id_high = 0; // номер устройства
+uint8_t id_low = 0; // номер устройства
 
-extern uint8_t Version_H;  // версия прошивки, старший байт
-extern uint8_t Version_L; // версия прошивки, младший байт
+uint8_t Version_H = 1;  // версия прошивки, старший байт
+uint8_t Version_L = 12; // версия прошивки, младший байт
 
+volatile uint8_t ip1 = 0; // стартовое значение ip адреса сервера
+volatile uint8_t ip2 = 0; // стартовое значение ip адреса сервера
+volatile uint8_t ip3 = 0; // стартовое значение ip адреса сервера
+volatile uint8_t ip4 = 0;  // стартовое значение ip адреса сервера
+volatile uint8_t port_high_reg = 0; // старший байт номера порта сервера
+volatile uint8_t port_low_reg = 0;  // младший байт номера порта сервера
+volatile uint16_t port = 0;   // номер порта сервера
 
 uint8_t at[3] = "AT\n";
 uint8_t at_csq[7] = "AT+CSQ\n";
 uint8_t at_cops[9] = "AT+COPS?\n";
-//uint8_t at_qiopen[38] = "AT+QIOPEN=\"TCP\",\"195.208.163.67\",35050";
 uint8_t at_qiopen[50];
 
 uint8_t state;
@@ -63,6 +69,7 @@ uint8_t b;
 uint8_t id2[10]; // номер CCID симкарты
 uint64_t id3;
 uint64_t id_temp1;
+uint64_t id1[20];
 
 
 
@@ -157,9 +164,9 @@ uint8_t AT_CSQ (uint8_t* signal_level)
 	return AT_ERROR;
 }
 
-uint8_t AT_QCCID ( uint8_t* id  /*uint64_t* id*/) // Команда для для чтения CCID сим карты
+uint8_t AT_QCCID ( uint8_t* id, uint64_t* temp_id) // Команда для для чтения CCID сим карты. id - указатель к массиву в которую будет сохраняться CCID симкарты (должен быть 8 байт), temp_id - указатель к временному массиву для расчета (должен быть 20 байт)
 {
-	uint64_t id1[20];
+	//uint64_t id1[20];
 	char str_out[9];
 	sprintf(str_out, "AT+QCCID\n");
 	read_rx_state = ACTIVE;
@@ -181,19 +188,21 @@ uint8_t AT_QCCID ( uint8_t* id  /*uint64_t* id*/) // Команда для дл�
 
 			for(uint8_t i=0; i<19; i++)
 			{
-				id1[i] = (uint8_t)modem_rx_buffer[10+i] - 48;
+				*(temp_id+i) = (uint8_t)modem_rx_buffer[10+i] - 48;
+				//temp_id[i] = (uint8_t)modem_rx_buffer[10+i] - 48;
 			}
 
-			id1[19] = id1[0]*1000000000000000000 + id1[1]*100000000000000000 + id1[2]*10000000000000000 + id1[3]*1000000000000000 + id1[4]*100000000000000 + id1[5]*10000000000000 + id1[6]*1000000000000 + id1[7]*100000000000 + id1[8]*10000000000 + id1[9]*1000000000 + id1[10]*100000000 + id1[11]*10000000 + id1[12]*1000000 + id1[13]*100000 + id1[14]*10000 + id1[15]*1000 + id1[16]*100 + id1[17]*10 + id1[18];
+			*(temp_id+19) = *temp_id*1000000000000000000 + *(temp_id+1)*100000000000000000 + *(temp_id+2)*10000000000000000 + *(temp_id+3)*1000000000000000 + *(temp_id+4)*100000000000000 + *(temp_id+5)*10000000000000 + *(temp_id+6)*1000000000000 + *(temp_id+7)*100000000000 + *(temp_id+8)*10000000000 + *(temp_id+9)*1000000000 + *(temp_id+10)*100000000 + *(temp_id+11)*10000000 + *(temp_id+12)*1000000 + *(temp_id+13)*100000 + *(temp_id+14)*10000 + *(temp_id+15)*1000 + *(temp_id+16)*100 + *(temp_id+17)*10 + *(temp_id+18);
+			//temp_id[19] = temp_id[0]*1000000000000000000 + temp_id[1]*100000000000000000 + temp_id[2]*10000000000000000 + temp_id[3]*1000000000000000 + temp_id[4]*100000000000000 + temp_id[5]*10000000000000 + temp_id[6]*1000000000000 + temp_id[7]*100000000000 + temp_id[8]*10000000000 + temp_id[9]*1000000000 + temp_id[10]*100000000 + temp_id[11]*10000000 + temp_id[12]*1000000 + temp_id[13]*100000 + temp_id[14]*10000 + temp_id[15]*1000 + temp_id[16]*100 + temp_id[17]*10 + temp_id[18];
 
-			*id = (uint8_t)(id1[19]>>56);
-			*(id+1) = (uint8_t)(id1[19]>>48);
-			*(id+2) = (uint8_t)(id1[19]>>40);
-			*(id+3) = (uint8_t)(id1[19]>>32);
-			*(id+4) = (uint8_t)(id1[19]>>24);
-			*(id+5) = (uint8_t)(id1[19]>>16);
-			*(id+6) = (uint8_t)(id1[19]>>8);
-			*(id+7) = (uint8_t)id1[19];
+			*id = (uint8_t)(*(temp_id+19)>>56);
+			*(id+1) = (uint8_t)(*(temp_id+19)>>48);
+			*(id+2) = (uint8_t)(*(temp_id+19)>>40);
+			*(id+3) = (uint8_t)(*(temp_id+19)>>32);
+			*(id+4) = (uint8_t)(*(temp_id+19)>>24);
+			*(id+5) = (uint8_t)(*(temp_id+19)>>16);
+			*(id+6) = (uint8_t)(*(temp_id+19)>>8);
+			*(id+7) = (uint8_t)*(temp_id+19);
 
 			return AT_OK;
 		}
@@ -750,32 +759,101 @@ uint8_t AT_QPOWD (uint8_t mode) // функция отключения пита�
 
 void ThreadM95Task(void const * argument)
 {
-	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
-	osSemaphoreWait(ReceiveStateHandle, osWaitForever);
-	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
+	osSemaphoreWait(TransmissionStateHandle, osWaitForever); // обнуляем семафор, при создании семафора его значение равно 1
+	osSemaphoreWait(ReceiveStateHandle, osWaitForever); // обнуляем семафор, при создании семафора его значение равно 1
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1); // включаем прием от модема
 
-	HAL_Delay(2000);
-	state = AT();
-	state = AT();
-	state = AT();
+	HAL_Delay(2000); // ждем
+	state = AT(); // проверяем связь с модемом
+	//state = AT();
+	//state = AT();
 	if(AT()==AT_ERROR)
 	{
 		m95_power_on();
 		HAL_Delay(5000);
 	}
 
-	state = AT();
-	state = AT();
-	state = AT();
+	state = AT(); // проверяем связь с модемом
+	//state = AT();
+	//state = AT();
 
+
+
+	//----Обнуление регистров IP адреса и порта сервера, обнуление ID устройства------
+	// Для записи регистров раскоментировать строки и прошить контроллер
+	uint8_t data0 = 0;
+
+	fm25v02_fast_write(ID_HIGH_REG, &data0, 1);
+	fm25v02_fast_write(ID_LOW_REG, &data0, 1);
+
+	fm25v02_fast_write(IP_1_REG, &data0, 1);
+	fm25v02_fast_write(IP_2_REG, &data0, 1);
+	fm25v02_fast_write(IP_3_REG, &data0, 1);
+	fm25v02_fast_write(IP_4_REG, &data0, 1);
+	fm25v02_fast_write(PORT_HIGH_REG, &data0, 1);
+	fm25v02_fast_write(PORT_LOW_REG, &data0, 1);
+
+	/*
+	uint8_t data0 = 0;
+
+	fm25v02_fast_write(ID_HIGH_REG*2, &data0, 1);
+	fm25v02_fast_write((ID_HIGH_REG*2)+1, &data0, 1);
+	fm25v02_fast_write(ID_LOW_REG*2, &data0, 1);
+	fm25v02_fast_write((ID_LOW_REG*2)+1, &data0, 1);
+
+	fm25v02_fast_write(IP_1_REG*2, &data0, 1);
+	fm25v02_fast_write((IP_1_REG*2)+1, &data0, 1);
+	fm25v02_fast_write(IP_2_REG*2, &data0, 1);
+	fm25v02_fast_write((IP_2_REG*2)+1, &data0, 1);
+	fm25v02_fast_write(IP_3_REG*2, &data0, 1);
+	fm25v02_fast_write((IP_3_REG*2)+1, &data0, 1);
+	fm25v02_fast_write(IP_4_REG*2, &data0, 1);
+	fm25v02_fast_write((IP_4_REG*2)+1, &data0, 1);
+	fm25v02_fast_write(PORT_HIGH_REG*2, &data0, 1);
+	fm25v02_fast_write((PORT_HIGH_REG*2)+1, &data0, 1);
+	fm25v02_fast_write(PORT_LOW_REG*2, &data0, 1);
+	fm25v02_fast_write((PORT_LOW_REG*2)+1, &data0, 1);
+	*/
+	//---------------------------------------------------------------------------------------------------------
+
+
+	fm25v02_fast_read(IP_1_REG, &ip1, 1); // читаем значение IP адреса сервера из памяти
+	fm25v02_fast_read(IP_2_REG, &ip2, 1);
+	fm25v02_fast_read(IP_3_REG, &ip3, 1);
+	fm25v02_fast_read(IP_4_REG, &ip4, 1);
+	fm25v02_fast_read(PORT_HIGH_REG, &port_high_reg, 1); // читаем значение старшего байта порта сервера
+	fm25v02_fast_read(PORT_LOW_REG, &port_low_reg, 1); // читаем занчение младшего байта порта сервера
+	port = (((uint16_t)port_high_reg)<<8)|((uint16_t)port_low_reg); // вычисляем общее значение регистра порта
+
+	/*
+	fm25v02_fast_read((IP_1_REG*2)+1, &ip1, 1); // читаем значение IP адреса сервера из памяти
+	fm25v02_fast_read((IP_2_REG*2)+1, &ip2, 1);
+	fm25v02_fast_read((IP_3_REG*2)+1, &ip3, 1);
+	fm25v02_fast_read((IP_4_REG*2)+1, &ip4, 1);
+	fm25v02_fast_read((PORT_HIGH_REG*2)+1, &port_high_reg, 1); // читаем значение старшего байта порта сервера
+	fm25v02_fast_read((PORT_LOW_REG*2)+1, &port_low_reg, 1); // читаем занчение младшего байта порта сервера
+	port = (((uint16_t)port_high_reg)<<8)|((uint16_t)port_low_reg); // вычисляем общее значение регистра порта
+	*/
+
+	if ( (ip1==0)&&(ip2==0)&&(ip3==0)&&(ip4==0)&&(port==0) ) // Если значения ip адреса сервера и его номера порта при инициализации нулевые, то выставляем их значения по умолчанию
+	{
+		ip1 = 195;    // значение по умолчанию
+		ip2 = 208;    // значение по умолчанию
+		ip3 = 163;    // значение по умолчанию
+		ip4 = 67;     // значение по умолчанию
+		port = 35050; // значение по умолчанию
+	}
 
 
 	for(;;)
 	{
 		osMutexWait(UartMutexHandle, osWaitForever);
-		if(AT()==AT_ERROR)
+		if(AT()==AT_ERROR) // два раза проверяем, есть ли ответ на команду АТ, если нет, включаем питание
 		{
-			m95_power_on();
+			if(AT()==AT_ERROR)
+			{
+				m95_power_on();
+			}
 			//HAL_Delay(10000);
 		}
 		osMutexRelease(UartMutexHandle);
@@ -786,9 +864,10 @@ void ThreadM95Task(void const * argument)
 		{
 			case IP_INITIAL:
 
-				if(	AT_QCCID(&id2[0]) == AT_OK)
+				if(	AT_QCCID(&id2[0], &id1[0]) == AT_OK) // читаем CCID сим-карты
 				{
-					fm25v02_fast_write(2*4159, &id2[0], 8);
+					fm25v02_fast_write(ICCID_NUMBER_REG1, &id2[0], 8); // записываем в регистры CCID сим-карты
+					//fm25v02_fast_write(ICCID_NUMBER_REG1*2, &id2[0], 8); // записываем в регистры CCID сим-карты
 				}
 
 				if(AT_QIREGAPP("mts.internet.ru", "mts", "mts") == AT_OK)
@@ -799,7 +878,7 @@ void ThreadM95Task(void const * argument)
 			break;
 			case IP_START:
 
-				if(AT_QIACT()==AT_OK)
+				if(AT_QIACT()!=AT_OK)
 				{
 
 				}
@@ -807,7 +886,7 @@ void ThreadM95Task(void const * argument)
 			break;
 			case IP_IND:
 
-				if(AT_QIDEACT()==AT_OK)
+				if(AT_QIDEACT()!=AT_OK)
 				{
 
 				}
@@ -815,7 +894,7 @@ void ThreadM95Task(void const * argument)
 			break;
 			case IP_GPRSACT:
 
-				if( AT_QIOPEN("TCP",195,208,163,67,35050) == AT_OK )
+				if( AT_QIOPEN("TCP", ip1, ip2, ip3, ip4, port) != AT_OK )
 				{
 
 				}
@@ -823,11 +902,18 @@ void ThreadM95Task(void const * argument)
 			break;
 			case IP_CLOSE:
 
-				if( AT_QIOPEN("TCP",195,208,163,67,35050) == AT_OK )
+				if( AT_QIOPEN("TCP", ip1 , ip2, ip3, ip4, port) != AT_OK )
 				{
 
 				}
 
+			break;
+			case PDP_DEACT:
+
+				if(AT_QIACT()!=AT_OK)
+				{
+
+				}
 			break;
 			case CONNECT_OK:
 				// Если соединение установлено
@@ -907,7 +993,7 @@ void ThreadM95Task(void const * argument)
 
 		//}
 
-		osDelay(1000);
+		osDelay(100);
 
 	}
 }
@@ -915,24 +1001,24 @@ void ThreadM95Task(void const * argument)
 
 void ThreadModbusTask(void const * argument)
 {
-	uint8_t id1[20]; // номер CCID симкарты
+	//uint8_t id1[20]; // номер CCID симкарты
 
 	uint8_t i=0;
 	uint8_t i_max;
 	uint16_t modbus_size;
 	uint16_t modbus_address;
-	uint16_t modbus_data;
+	//uint16_t modbus_data;
 
-	uint8_t data[10];
-	data[0]=(uint8_t)((ID_H>>8)&0xFF); // стартовый номер устройства, старший байт 1
-	data[1]=(uint8_t)(ID_H&0xFF); // стартовый номер устройства, старший байт 2
-	data[2]=(uint8_t)((ID_L>>8)&0xFF); // стартовый номер устройства, младший байт 1
-	data[3]=(uint8_t)(ID_L&0xFF); // стартовый номер устройства, младший байт 2
-	data[4]=Version_H; // версия прошивки, старший байт
-	data[5]=Version_L; // версия прошивки, младший байт
+	//uint8_t data[10];
+	//data[0]=(uint8_t)((ID_H>>8)&0xFF); // стартовый номер устройства, старший байт 1
+	//data[1]=(uint8_t)(ID_H&0xFF); // стартовый номер устройства, старший байт 2
+	//data[2]=(uint8_t)((ID_L>>8)&0xFF); // стартовый номер устройства, младший байт 1
+	//data[3]=(uint8_t)(ID_L&0xFF); // стартовый номер устройства, младший байт 2
+	//data[4]=Version_H; // версия прошивки, старший байт
+	//data[5]=Version_L; // версия прошивки, младший байт
 
-	fm25v02_fast_write(VERSION_REG, &data[0], 4);// записываем в память ID устройства
-	fm25v02_fast_write(0x1000*2, &data[4], 2);// записываем в память номер версии прошивки
+	//fm25v02_fast_write(VERSION_REG, &data[0], 4);// записываем в память ID устройства
+	//fm25v02_fast_write(0x1000*2, &data[4], 2);// записываем в память номер версии прошивки
 
 
 	for(;;)
@@ -1098,6 +1184,31 @@ void ThreadModbusTask(void const * argument)
 							modbus_size = (((((uint16_t)modbus_buffer[4])<<8)&0xFF00)|(((uint16_t)modbus_buffer[5])&0xFF)); //  считаем количество регистров для чтения
 							if( modbus_address == SIGNAL_LEVEL ) // Если запрашивается уровень сигнала
 							{
+
+								osMutexWait(UartMutexHandle, osWaitForever);
+								AT_CSQ(&level);
+								osMutexRelease(UartMutexHandle);
+								fm25v02_write(modbus_address, level);
+
+								fm25v02_fast_read( modbus_address , &buf_out[0] , modbus_size); // читаем из памяти необходимое количество регистров
+
+								buf_out1[0] = 0x01;
+								buf_out1[1] = 0x03;
+								buf_out1[2] = 2*modbus_size;
+								for(uint8_t i=0; i<2*modbus_size; i++)
+								{
+									buf_out1[2*i+3] = 0;
+									buf_out1[2*i+4] = buf_out[i];
+								}
+								crc_temp = CRC16(&buf_out1[0], 3+2*modbus_size);
+								buf_out1[2*modbus_size+3] = (uint8_t)(crc_temp&0x00FF);
+								buf_out1[2*modbus_size+4] = (uint8_t)((crc_temp>>8)&0x00FF);
+
+								osMutexWait(UartMutexHandle, osWaitForever);
+								AT_QISEND(&buf_out1[0], 2*modbus_size+5);
+								osMutexRelease(UartMutexHandle);
+
+								/*
 								osMutexWait(UartMutexHandle, osWaitForever);
 								AT_CSQ(&level);
 								osMutexRelease(UartMutexHandle);
@@ -1120,10 +1231,31 @@ void ThreadModbusTask(void const * argument)
 								osMutexWait(UartMutexHandle, osWaitForever);
 								AT_QISEND(&buf_out1[0], 2*modbus_size+5);
 								osMutexRelease(UartMutexHandle);
+								*/
+
 							}
 
 							else
 							{
+								fm25v02_fast_read( modbus_address , &buf_out[0] , modbus_size); // читаем из памяти необходимое количество регистров
+
+								buf_out1[0] = 0x01;
+								buf_out1[1] = 0x03;
+								buf_out1[2] = 2*modbus_size;
+								for(uint8_t i=0; i<2*modbus_size; i++)
+								{
+									buf_out1[2*i+3] = 0;
+									buf_out1[2*i+4] = buf_out[i];
+								}
+								crc_temp = CRC16(&buf_out1[0], 3+2*modbus_size);
+								buf_out1[2*modbus_size+3] = (uint8_t)(crc_temp&0x00FF);
+								buf_out1[2*modbus_size+4] = (uint8_t)((crc_temp>>8)&0x00FF);
+
+								osMutexWait(UartMutexHandle, osWaitForever);
+								AT_QISEND(&buf_out1[0], 2*modbus_size+5);
+								osMutexRelease(UartMutexHandle);
+
+								/*
 								fm25v02_fast_read( 2*modbus_address , &buf_out[0] , 2*modbus_size); // если запрашивается чтение регистров, читаем из памяти необходимое количество регистров
 
 								buf_out1[0] = 0x01;
@@ -1140,12 +1272,26 @@ void ThreadModbusTask(void const * argument)
 								osMutexWait(UartMutexHandle, osWaitForever);
 								AT_QISEND(&buf_out1[0], 2*modbus_size+5);
 								osMutexRelease(UartMutexHandle);
+								*/
 							}
 
 						break;
 
 						case(0x06): // запись одного регистра
 
+							modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для записи
+
+							if( (modbus_address>=0x1090) && (modbus_address<=0x10FF) )
+							{
+								//modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для записи
+
+								fm25v02_fast_write(modbus_address, &modbus_buffer[4], 2);
+
+								osMutexWait(UartMutexHandle, osWaitForever);
+								AT_QISEND(&modbus_buffer[0], 8);
+								osMutexRelease(UartMutexHandle);
+							}
+							/*
 							if( (modbus_address>=0x1090) && (modbus_address<=0x10FF) )
 							{
 								modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для записи
@@ -1156,11 +1302,41 @@ void ThreadModbusTask(void const * argument)
 								AT_QISEND(&modbus_buffer[0], 8);
 								osMutexRelease(UartMutexHandle);
 							}
+							*/
 
 						break;
 
 						case(0x10): // запись нескольких регистров
 
+							modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для записи
+
+							if( (modbus_address>=0x1090) && (modbus_address<=0x10FF) )
+							{
+
+								for(uint8_t a=0; a<(modbus_buffer[6])/2; a++) // исправил 'i' на 'a', так как в функции fm25v02_fast_write() внутри уже есть 'i'
+								{
+									fm25v02_fast_write(modbus_address+a, &modbus_buffer[8+a*2], 1);
+								}
+
+
+								buf_out1[0] = 0x01;
+								buf_out1[1] = 0x10;
+								buf_out1[2] = modbus_buffer[2];
+								buf_out1[3] = modbus_buffer[3];
+								buf_out1[4] = modbus_buffer[4];
+								buf_out1[5] = modbus_buffer[5];
+
+								crc_temp = CRC16(&buf_out1[0], 6);
+
+								buf_out1[6] = (uint8_t)(crc_temp&0x00FF);
+								buf_out1[7] = (uint8_t)((crc_temp>>8)&0x00FF);
+
+								osMutexWait(UartMutexHandle, osWaitForever);
+								AT_QISEND(&buf_out1[0], 8);
+								osMutexRelease(UartMutexHandle);
+							}
+
+							/*
 							if( (modbus_address>=0x1090) && (modbus_address<=0x10FF) )
 							{
 								modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для записи
@@ -1182,6 +1358,7 @@ void ThreadModbusTask(void const * argument)
 								AT_QISEND(&buf_out1[0], 8);
 								osMutexRelease(UartMutexHandle);
 							}
+							*/
 
 						break;
 					}
