@@ -73,7 +73,7 @@ osThreadId CurrentID;
 
 
 
-uint8_t security_state = 0x00;
+volatile uint8_t security_state = 0x00;
 RTC_TimeTypeDef security_time;
 RTC_DateTypeDef security_date;
 
@@ -640,7 +640,7 @@ void Callback_AT_Timer(void const * argument)
 {
   /* USER CODE BEGIN Callback_AT_Timer */
 	read_rx_state = NOT_ACTIVE;
-	LED_VD4_ON();
+	//LED_VD4_ON();
 	//osThreadResume(M95TaskHandle);
 
   /* USER CODE END Callback_AT_Timer */

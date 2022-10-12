@@ -199,7 +199,32 @@ HAL_StatusTypeDef ibutton_read_rom (IbuttonROM_Struct* id)
 // HAL_ERROR - ROM не найден в памяти FRAM
 HAL_StatusTypeDef ibutton_search_rom(IbuttonROM_Struct* id)
 {
+	//uint8_t temp_ibutton_state;
+	uint8_t id_fram[8];
+	uint32_t id_temp_rom_high=0;
+	uint32_t id_temp_rom_low=0;
 
+	for(uint16_t add=0x1310; add<=0x1F80; add=add+8)
+	{
+		//fm25v02_read(add, &temp_ibutton_state);
+		//if(temp_ibutton_state == 0x01) // Проверяем есть ли запись в памяти
+		//{
+			fm25v02_fast_read(add, &id_fram[0], 8);
+			id_temp_rom_high = (((uint32_t)id_fram[7])<<24)|(((uint32_t)id_fram[6])<<16)|(((uint32_t)id_fram[5])<<8)|((uint32_t)id_fram[4]);
+			id_temp_rom_low = (((uint32_t)id_fram[3])<<24)|(((uint32_t)id_fram[2])<<16)|(((uint32_t)id_fram[1])<<8)|((uint32_t)id_fram[0]);
+			//id_temp_rom_high = (((uint32_t)id_fram[0])<<24)|(((uint32_t)id_fram[1])<<16)|(((uint32_t)id_fram[2])<<8)|((uint32_t)id_fram[3]);
+			//id_temp_rom_low = (((uint32_t)id_fram[4])<<24)|(((uint32_t)id_fram[5])<<16)|(((uint32_t)id_fram[6])<<8)|((uint32_t)id_fram[7]);
+			if( (id_temp_rom_high == id->IbuttonROM_High) && (id_temp_rom_low == id->IbuttonROM_Low) )
+			{
+				return HAL_OK;
+			}
+			//else
+			//{
+				//return HAL_ERROR;
+			//}
+		//}
+	}
+	return HAL_ERROR;
 	/*
 	uint8_t temp_ibutton_state;
 	uint8_t id_fram[8];

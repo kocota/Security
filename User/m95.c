@@ -38,39 +38,28 @@ volatile uint8_t port_high_reg = 0; // старший байт номера по
 volatile uint8_t port_low_reg = 0;  // младший байт номера порта сервера
 volatile uint16_t port = 0;   // номер порта сервера
 
-uint8_t at[3] = "AT\n";
-uint8_t at_csq[7] = "AT+CSQ\n";
+//uint8_t at[3] = "AT\n";
+//uint8_t at_csq[7] = "AT+CSQ\n";
 uint8_t at_cops[9] = "AT+COPS?\n";
 uint8_t at_qiopen[50];
 
 uint8_t state;
 uint8_t level;
-
-char str11[4]; // максимальное число 1460
-
-
-
-extern uint8_t t;
-
-
-uint8_t buf_send[9] = {0x01, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00, 0xFA, 0x33};
-
 extern uint8_t modbus_buffer[256];
-
 osEvent ModbusEvent;
-
 uint32_t crc_temp;
-
 uint8_t buf_out[20];
 uint8_t buf_out1[20];
-uint8_t buf_out2[20];
-uint8_t b;
-
 uint8_t id2[10]; // номер CCID симкарты
-uint64_t id3;
-uint64_t id_temp1;
 uint64_t id1[20];
 
+//uint8_t buf_send[9] = {0x01, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00, 0xFA, 0x33};
+//char str11[4]; // максимальное число 1460
+//uint64_t id3;
+//uint64_t id_temp1;
+//uint8_t buf_out2[20];
+//uint8_t b;
+//extern uint8_t t;
 
 
 unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
@@ -106,36 +95,42 @@ void modem_rx_buffer_clear (void)
 
 uint8_t AT (void)
 {
+	char str_out[3];
+	sprintf(str_out, "AT\n");
+
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
 	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
-	HAL_UART_Transmit_DMA(&huart3, at, 3);
+	HAL_UART_Transmit_DMA(&huart3, str_out, 3);
+	//HAL_UART_Transmit_DMA(&huart3, at, 3);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
 
 	osTimerStart(AT_TimerHandle, 300);
 	while(read_rx_state == ACTIVE)
 	{
-		//osThreadSuspend(M95TaskHandle);
 		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 			return AT_OK;
 		}
-
 	}
 	return AT_ERROR;
 }
 
 uint8_t AT_CSQ (uint8_t* signal_level)
 {
+	char str_out[7];
+	sprintf(str_out, "AT+CSQ\n");
+
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
 	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
-	HAL_UART_Transmit_DMA(&huart3, at_csq, 7);
+	HAL_UART_Transmit_DMA(&huart3, str_out, 7);
+	//HAL_UART_Transmit_DMA(&huart3, at_csq, 7);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
 
@@ -213,11 +208,15 @@ uint8_t AT_QCCID ( uint8_t* id, uint64_t* temp_id) // Команда для дл
 
 uint8_t AT_COPS (void)
 {
+	char str_out[9];
+	sprintf(str_out, "AT+COPS?\n");
+
 	read_rx_state = ACTIVE;
 	modem_rx_number = 0;
 	modem_rx_buffer_clear();
 	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
-	HAL_UART_Transmit_DMA(&huart3, at_cops, 9);
+	HAL_UART_Transmit_DMA(&huart3, str_out, 9);
+	//HAL_UART_Transmit_DMA(&huart3, at_cops, 9);
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
 
@@ -756,6 +755,18 @@ uint8_t AT_QPOWD (uint8_t mode) // функция отключения пита�
 	return AT_ERROR;
 }
 
+uint8_t request_to_server()
+{
+	uint8_t send_out[5] = {0x01, 0x02, 0x03, 0x04, 0x05};
+
+	if( AT_QISEND(&send_out[0], 5) == AT_OK )
+	{
+		return AT_OK;
+	}
+
+	return AT_ERROR;
+}
+
 
 void ThreadM95Task(void const * argument)
 {
@@ -765,24 +776,19 @@ void ThreadM95Task(void const * argument)
 
 	HAL_Delay(2000); // ждем
 	state = AT(); // проверяем связь с модемом
-	//state = AT();
-	//state = AT();
+
 	if(AT()==AT_ERROR)
 	{
 		m95_power_on();
-		HAL_Delay(5000);
+		HAL_Delay(7000);
 	}
 
 	state = AT(); // проверяем связь с модемом
-	//state = AT();
-	//state = AT();
-
-
 
 	//----Обнуление регистров IP адреса и порта сервера, обнуление ID устройства------
 	// Для записи регистров раскоментировать строки и прошить контроллер
+	/*
 	uint8_t data0 = 0;
-
 	fm25v02_fast_write(ID_HIGH_REG, &data0, 1);
 	fm25v02_fast_write(ID_LOW_REG, &data0, 1);
 
@@ -792,27 +798,6 @@ void ThreadM95Task(void const * argument)
 	fm25v02_fast_write(IP_4_REG, &data0, 1);
 	fm25v02_fast_write(PORT_HIGH_REG, &data0, 1);
 	fm25v02_fast_write(PORT_LOW_REG, &data0, 1);
-
-	/*
-	uint8_t data0 = 0;
-
-	fm25v02_fast_write(ID_HIGH_REG*2, &data0, 1);
-	fm25v02_fast_write((ID_HIGH_REG*2)+1, &data0, 1);
-	fm25v02_fast_write(ID_LOW_REG*2, &data0, 1);
-	fm25v02_fast_write((ID_LOW_REG*2)+1, &data0, 1);
-
-	fm25v02_fast_write(IP_1_REG*2, &data0, 1);
-	fm25v02_fast_write((IP_1_REG*2)+1, &data0, 1);
-	fm25v02_fast_write(IP_2_REG*2, &data0, 1);
-	fm25v02_fast_write((IP_2_REG*2)+1, &data0, 1);
-	fm25v02_fast_write(IP_3_REG*2, &data0, 1);
-	fm25v02_fast_write((IP_3_REG*2)+1, &data0, 1);
-	fm25v02_fast_write(IP_4_REG*2, &data0, 1);
-	fm25v02_fast_write((IP_4_REG*2)+1, &data0, 1);
-	fm25v02_fast_write(PORT_HIGH_REG*2, &data0, 1);
-	fm25v02_fast_write((PORT_HIGH_REG*2)+1, &data0, 1);
-	fm25v02_fast_write(PORT_LOW_REG*2, &data0, 1);
-	fm25v02_fast_write((PORT_LOW_REG*2)+1, &data0, 1);
 	*/
 	//---------------------------------------------------------------------------------------------------------
 
@@ -825,16 +810,6 @@ void ThreadM95Task(void const * argument)
 	fm25v02_fast_read(PORT_LOW_REG, &port_low_reg, 1); // читаем занчение младшего байта порта сервера
 	port = (((uint16_t)port_high_reg)<<8)|((uint16_t)port_low_reg); // вычисляем общее значение регистра порта
 
-	/*
-	fm25v02_fast_read((IP_1_REG*2)+1, &ip1, 1); // читаем значение IP адреса сервера из памяти
-	fm25v02_fast_read((IP_2_REG*2)+1, &ip2, 1);
-	fm25v02_fast_read((IP_3_REG*2)+1, &ip3, 1);
-	fm25v02_fast_read((IP_4_REG*2)+1, &ip4, 1);
-	fm25v02_fast_read((PORT_HIGH_REG*2)+1, &port_high_reg, 1); // читаем значение старшего байта порта сервера
-	fm25v02_fast_read((PORT_LOW_REG*2)+1, &port_low_reg, 1); // читаем занчение младшего байта порта сервера
-	port = (((uint16_t)port_high_reg)<<8)|((uint16_t)port_low_reg); // вычисляем общее значение регистра порта
-	*/
-
 	if ( (ip1==0)&&(ip2==0)&&(ip3==0)&&(ip4==0)&&(port==0) ) // Если значения ip адреса сервера и его номера порта при инициализации нулевые, то выставляем их значения по умолчанию
 	{
 		ip1 = 195;    // значение по умолчанию
@@ -844,10 +819,10 @@ void ThreadM95Task(void const * argument)
 		port = 35050; // значение по умолчанию
 	}
 
-
 	for(;;)
 	{
 		osMutexWait(UartMutexHandle, osWaitForever);
+
 		if(AT()==AT_ERROR) // два раза проверяем, есть ли ответ на команду АТ, если нет, включаем питание
 		{
 			if(AT()==AT_ERROR)
@@ -856,6 +831,7 @@ void ThreadM95Task(void const * argument)
 			}
 			//HAL_Delay(10000);
 		}
+
 		osMutexRelease(UartMutexHandle);
 
 		osMutexWait(UartMutexHandle, osWaitForever);
@@ -863,8 +839,11 @@ void ThreadM95Task(void const * argument)
 		switch(AT_QISTATE())
 		{
 			case IP_INITIAL:
+				if( AT_COPS() == AT_OK )
+				{
 
-				if(	AT_QCCID(&id2[0], &id1[0]) == AT_OK) // читаем CCID сим-карты
+				}
+				if(	AT_QCCID(&id2[0], &id1[0]) == AT_OK ) // читаем CCID сим-карты
 				{
 					fm25v02_fast_write(ICCID_NUMBER_REG1, &id2[0], 8); // записываем в регистры CCID сим-карты
 					//fm25v02_fast_write(ICCID_NUMBER_REG1*2, &id2[0], 8); // записываем в регистры CCID сим-карты
@@ -917,24 +896,23 @@ void ThreadM95Task(void const * argument)
 			break;
 			case CONNECT_OK:
 				// Если соединение установлено
+				if( AT_COPS() == AT_OK )
+				{
+
+				}
+
 
 			break;
 			case AT_ERROR:
-				LED_VD4_TOGGLE();
+				//LED_VD4_TOGGLE();
 			break;
 			default:
-				LED_VD4_TOGGLE();
+				//LED_VD4_TOGGLE();
 			break;
 
 		}
+
 		osMutexRelease(UartMutexHandle);
-
-
-
-
-
-
-
 
 
 
@@ -1310,7 +1288,7 @@ void ThreadModbusTask(void const * argument)
 
 							modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для записи
 
-							if( (modbus_address>=0x1090) && (modbus_address<=0x10FF) )
+							if( !( (modbus_address>=0x1000) && (modbus_address<=0x108F) ) )
 							{
 
 								for(uint8_t a=0; a<(modbus_buffer[6])/2; a++) // исправил 'i' на 'a', так как в функции fm25v02_fast_write() внутри уже есть 'i'
