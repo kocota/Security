@@ -3,6 +3,7 @@
 #include "fm25v02.h"
 #include "gpio.h"
 #include "m95.h"
+#include "modbus.h"
 
 
 extern uint8_t security_state;

@@ -6,6 +6,7 @@
 #include "fm25v02.h"
 #include "security.h"
 #include "m95.h"
+#include "modbus.h"
 
 extern volatile uint8_t security_state;
 extern RTC_HandleTypeDef hrtc;

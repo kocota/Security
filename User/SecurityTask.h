@@ -4,7 +4,7 @@
 
 //----биты состояния байта SECURITY_STATUS_REG статус режима охраны------
 
-#define RESERVED_0           0x00 // зарезервированно
+#define RESERVED_0          0x00 // зарезервированно
 #define ENABLED_BY_SERVER   0x01 // включена из центра
 #define DISABLED_BY_SERVER  0x02 // отключена из центра
 #define ENABLED_BY_IBUTTON  0x03 // включена таблеткой
