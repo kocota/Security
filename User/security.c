@@ -14,6 +14,7 @@ void ThreadSecurityTask(void const * argument)
 {
 
 	fm25v02_read(SECURITY_STATUS_REG, &security_state);//Читаем байт состояния охранной сигнализации из памяти
+
 	if( (security_state == DISABLED_BY_IBUTTON) || (security_state == DISABLED_BY_SERVER) || (security_state == RESERVED_0) )//Проверяем состояние охранной сигнаизации и включаем или выключаем светодиоды
 	{
 		for(uint8_t i=0; i<40; i++)
@@ -41,7 +42,7 @@ void ThreadSecurityTask(void const * argument)
 	{
 
 		//fm25v02_read(SECURITY_STATUS_REG, &security_state);
-		if( (security_state == ENABLED_BY_IBUTTON) || (security_state == ENABLED_BY_SERVER) )
+		if( (security_state == ENABLED_BY_IBUTTON) || (security_state == ENABLED_BY_SERVER) ) // если режим охраны включен таблеткой или из центра
 		{
 			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_12) == GPIO_PIN_RESET)
 			{

@@ -12,6 +12,7 @@ extern RTC_HandleTypeDef hrtc;
 extern RTC_TimeTypeDef security_time;
 extern RTC_DateTypeDef security_date;
 extern osThreadId IbuttonTaskHandle;
+extern osMutexId UartMutexHandle;
 
 uint8_t t_data[50];
 
@@ -95,7 +96,11 @@ void ThreadIbuttonTask(void const * argument)
 			  			}
 			  			LED2_ON();
 			  			LED_OUT_ON();
-			  			//request_to_server();
+
+			  			osMutexWait(UartMutexHandle, osWaitForever);
+			  			request_to_server();
+			  			osMutexRelease(UartMutexHandle);
+
 			  		}
 					else if( (security_state == ENABLED_BY_IBUTTON) || (security_state == ENABLED_BY_SERVER) )
 			  		{
@@ -132,7 +137,11 @@ void ThreadIbuttonTask(void const * argument)
 			  			}
 			  			LED2_OFF();
 			  			LED_OUT_OFF();
-			  			//request_to_server();
+
+			  			osMutexWait(UartMutexHandle, osWaitForever);
+			  			request_to_server();
+			  			osMutexRelease(UartMutexHandle);
+
 			  		  }
 				}
 			}

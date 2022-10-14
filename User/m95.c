@@ -28,7 +28,7 @@ uint8_t id_high = 0; // номер устройства
 uint8_t id_low = 0; // номер устройства
 
 uint8_t Version_H = 1;  // версия прошивки, старший байт
-uint8_t Version_L = 12; // версия прошивки, младший байт
+uint8_t Version_L = 13; // версия прошивки, младший байт
 
 volatile uint8_t ip1 = 0; // стартовое значение ip адреса сервера
 volatile uint8_t ip2 = 0; // стартовое значение ip адреса сервера
@@ -48,10 +48,13 @@ uint8_t level;
 extern uint8_t modbus_buffer[256];
 osEvent ModbusEvent;
 uint32_t crc_temp;
-uint8_t buf_out[20];
-uint8_t buf_out1[20];
+uint8_t buf_out[256];
+uint8_t buf_out1[256];
 uint8_t id2[10]; // номер CCID симкарты
 uint64_t id1[20];
+
+//uint8_t temp2[127] = {0x01, 0x03, 0x7C, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x44, 0xBA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00};
+//uint32_t my_crc;
 
 //uint8_t buf_send[9] = {0x01, 0x03, 0x04, 0x00, 0x00, 0x00, 0x00, 0xFA, 0x33};
 //char str11[4]; // максимальное число 1460
@@ -60,6 +63,121 @@ uint64_t id1[20];
 //uint8_t buf_out2[20];
 //uint8_t b;
 //extern uint8_t t;
+
+
+typedef struct
+{
+	uint16_t version_reg;
+	uint16_t security_status_reg;
+	uint16_t status_loop_reg;
+	uint16_t error_loop_reg;
+	uint16_t alarm_loop_reg;
+	uint16_t time_current_year_reg;
+	uint16_t time_current_month_reg;
+	uint16_t time_current_day_reg;
+	uint16_t time_current_hour_reg;
+	uint16_t time_current_minute_reg;
+	uint16_t time_current_second_reg;
+	uint16_t time_current_weekday_reg;
+	uint16_t address_processed_event_h_reg;
+	uint16_t address_processed_event_l_reg;
+	uint16_t system_status_reg;
+	uint16_t power_on_reg;
+	uint16_t error_rtc_reg;
+	uint16_t reserved_1;
+	uint16_t reserved_2;
+	uint16_t ibutton_complite_0_reg;
+	uint16_t ibutton_complite_1_reg;
+	uint16_t ibutton_complite_2_reg;
+	uint16_t ibutton_complite_3_reg;
+	uint16_t ibutton_complite_4_reg;
+	uint16_t ibutton_complite_5_reg;
+	uint16_t ibutton_complite_6_reg;
+	uint16_t ibutton_complite_7_reg;
+	uint16_t reserved_3;
+	uint16_t ce303_error_reg;
+	uint16_t ce303_current_a_reg;
+	uint16_t ce303_current_b_reg;
+	uint16_t ce303_current_c_reg;
+	uint16_t ce303_current_mil_a_reg;
+	uint16_t ce303_current_mil_b_reg;
+	uint16_t ce303_current_mil_c_reg;
+	uint16_t ce303_volt_a_reg;
+	uint16_t ce303_volt_b_reg;
+	uint16_t ce303_volt_c_reg;
+	uint16_t ce303_volt_mil_a_reg;
+	uint16_t ce303_volt_mil_b_reg;
+	uint16_t ce303_volt_mil_c_reg;
+
+	uint16_t ce303_total_power_h_reg;
+	uint16_t ce303_total_power_l_reg;
+	uint16_t ce303_total_power_mil_reg;
+
+	uint16_t signal_level_reg;
+	uint16_t iccid_number_reg1;
+	uint16_t iccid_number_reg2;
+	uint16_t iccid_number_reg3;
+	uint16_t iccid_number_reg4;
+	uint16_t iccid_number_reg5;
+	uint16_t iccid_number_reg6;
+	uint16_t iccid_number_reg7;
+	uint16_t iccid_number_reg8;
+
+} status_register_struct;
+
+typedef struct
+{
+	uint16_t security_control_reg;
+	uint16_t control_loop_reg;
+	uint16_t filter_time_loop_reg;
+	uint16_t quantity_false_loop_reg;
+	uint16_t time_false_loop_reg;
+	uint16_t alarm_loop_clear_reg;
+	uint16_t false_loop_clear_reg;
+	uint16_t security_time_max_reg;
+	uint16_t time_update_reg;
+	uint16_t time_year_reg;
+	uint16_t time_month_reg;
+	uint16_t time_day_reg;
+	uint16_t time_hour_reg;
+	uint16_t time_minute_reg;
+	uint16_t time_seconds;
+	uint16_t time_weekday_reg;
+	uint16_t modbus_idle_time_max_reg;
+	uint16_t time_connection_test_reg;
+	uint16_t event_read_reg;
+	uint16_t event_address_high_reg;
+	uint16_t event_address_low_reg;
+	uint16_t modem_ring_try_load_reg;
+	uint16_t modem_ring_pause_load_reg;
+	uint16_t modem_ring_pause2_load_reg;
+	uint16_t ring_minute_time_reg;
+	uint16_t ring_hour_time_reg;
+
+	uint16_t id_high_reg;
+	uint16_t id_low_reg;
+	uint16_t lamp_control_reg;
+	uint16_t meter_polling_reg;
+	uint16_t ip1_reg;
+	uint16_t ip2_reg;
+	uint16_t ip3_reg;
+	uint16_t ip4_reg;
+	uint16_t port_high_reg;
+	uint16_t port_low_reg;
+	uint16_t meter_id_high_reg;
+	uint16_t meter_id_low_reg;
+	uint16_t gprs_call_reg;
+
+} control_register_struct;
+
+status_register_struct status_registers;
+control_register_struct control_registers;
+
+
+
+
+
+uint32_t address_struct[10];
 
 
 unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
@@ -755,7 +873,7 @@ uint8_t AT_QPOWD (uint8_t mode) // функция отключения пита�
 	return AT_ERROR;
 }
 
-uint8_t request_to_server()
+uint8_t request_to_server() // функция запроса к серверу, чтобы тот прочитал регистры из устройства
 {
 	uint8_t send_out[5] = {0x01, 0x02, 0x03, 0x04, 0x05};
 
@@ -770,6 +888,7 @@ uint8_t request_to_server()
 
 void ThreadM95Task(void const * argument)
 {
+
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever); // обнуляем семафор, при создании семафора его значение равно 1
 	osSemaphoreWait(ReceiveStateHandle, osWaitForever); // обнуляем семафор, при создании семафора его значение равно 1
 	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1); // включаем прием от модема
@@ -801,6 +920,9 @@ void ThreadM95Task(void const * argument)
 	*/
 	//---------------------------------------------------------------------------------------------------------
 
+
+
+	fm25v02_fast_write(VERSION_REG, &Version_L, 1); // записываем в память версию прошивки
 
 	fm25v02_fast_read(IP_1_REG, &ip1, 1); // читаем значение IP адреса сервера из памяти
 	fm25v02_fast_read(IP_2_REG, &ip2, 1);
@@ -971,7 +1093,7 @@ void ThreadM95Task(void const * argument)
 
 		//}
 
-		osDelay(100);
+		osDelay(1000);
 
 	}
 }
