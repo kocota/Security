@@ -1,6 +1,8 @@
 #ifndef MODBUS
 #define MODBUS
 
+#include "stm32f4xx_hal.h"
+
 unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 
 
@@ -59,7 +61,7 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 #define CE_303_TOTAL_POWER_L_REG         0x1032 // (4146) суммарная мощность, младший байт
 #define CE_303_TOTAL_POWER_MIL_REG       0x1033 // (4147) суммарная мощность миливатт
 
-#define SIGNAL_LEVEL                     0x1034 // (4148) уровень сигнала
+#define SIGNAL_LEVEL_REG                 0x1034 // (4148) уровень сигнала
 #define ICCID_NUMBER_REG1                0x1035 // (4149) ICCID номер 1
 #define ICCID_NUMBER_REG2                0x1036 // (4150) ICCID номер 2
 #define ICCID_NUMBER_REG3                0x1037 // (4151) ICCID номер 3
@@ -117,6 +119,38 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 
 //--------------------------------------------------------
 
+//----биты состояния байта SECURITY_STATUS_REG статус режима охраны------
+
+#define RESERVED_0          0x00 // зарезервированно
+#define ENABLED_BY_SERVER   0x01 // включена из центра
+#define DISABLED_BY_SERVER  0x02 // отключена из центра
+#define ENABLED_BY_IBUTTON  0x03 // включена таблеткой
+#define DISABLED_BY_IBUTTON 0x04 // отключена таблеткой
+#define DOOR_OPEN_ALARM     0x05 // тревога открытия двери
+#define ARMING_PROCESS      0x06 // процесс постановки на охрану
+#define ARMING_ERROR        0x07 // не удается поставить на охрану
+
+//-----------------------------------------------------------------------
+
+//----биты security_control регистра-------------------------------------
+#define SECURITY_CONTROL_DEFAULT           0x00 // состояние покоя
+#define ENABLE_FROM_SERVER                 0x01 // включить из центра
+#define DISABLE_FROM_IBUTTON_OR_SERVER     0x02 // отключить с таблетки
+#define ENABLE_FROM_IBUTTON                0x03 // ввключить с таблетки
+//-----------------------------------------------------------------------
+
+//----биты time_update регистра------------------------------------------
+#define SET_TIME_DEFAULT 0x00
+#define SET_TIME         0x01
+//-----------------------------------------------------------------------
+
+//----биты gprs_call_reg регистра------------------------------------------
+#define CALL_OFF  0x00
+#define CALL_ON   0x01
+//-----------------------------------------------------------------------
+
+
+
 //----структура переменной статусных регистров---------------------
 typedef struct
 {
@@ -134,6 +168,8 @@ typedef struct
 	uint16_t time_current_weekday_reg;
 	uint16_t address_processed_event_h_reg;
 	uint16_t address_processed_event_l_reg;
+	uint16_t address_last_event_h_reg;
+	uint16_t address_last_event_l_reg;
 	uint16_t system_status_reg;
 	uint16_t power_on_reg;
 	uint16_t error_rtc_reg;
@@ -162,6 +198,12 @@ typedef struct
 	uint16_t ce303_volt_mil_b_reg;
 	uint16_t ce303_volt_mil_c_reg;
 
+	uint16_t ce303_power_a_reg;
+	uint16_t ce303_power_b_reg;
+	uint16_t ce303_power_c_reg;
+	uint16_t ce303_power_mil_a_reg;
+	uint16_t ce303_power_mil_b_reg;
+	uint16_t ce303_power_mil_c_reg;
 	uint16_t ce303_total_power_h_reg;
 	uint16_t ce303_total_power_l_reg;
 	uint16_t ce303_total_power_mil_reg;
@@ -196,7 +238,7 @@ typedef struct
 	uint16_t time_day_reg;
 	uint16_t time_hour_reg;
 	uint16_t time_minute_reg;
-	uint16_t time_seconds;
+	uint16_t time_seconds_reg;
 	uint16_t time_weekday_reg;
 	uint16_t modbus_idle_time_max_reg;
 	uint16_t time_connection_test_reg;

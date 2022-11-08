@@ -227,7 +227,13 @@ uint8_t AT_QIOPEN (char* type , uint8_t ip1, uint8_t ip2, uint8_t ip3, uint8_t i
 	while(read_rx_state == ACTIVE)
 	{
 		//osThreadSuspend(M95TaskHandle);
-		if( (strstr(modem_rx_buffer, "CONNECT OK\r\n") != NULL) || (strstr(modem_rx_buffer, "ALREADY CONNECT\r\n") != NULL) )
+		if( (strstr(modem_rx_buffer, "CONNECT OK\r\n") != NULL) )
+		{
+			osTimerStop(AT_TimerHandle);
+			read_rx_state = NOT_ACTIVE;
+			return AT_OK;
+		}
+		else if( (strstr(modem_rx_buffer, "ALREADY CONNECT\r\n") != NULL) )
 		{
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
@@ -243,6 +249,33 @@ uint8_t AT_QIOPEN (char* type , uint8_t ip1, uint8_t ip2, uint8_t ip3, uint8_t i
 	}
 	return AT_ERROR;
 
+}
+
+uint8_t AT_QICLOSE (void)
+{
+	char str_out[11];
+	sprintf(str_out, "AT+QICLOSE\n");
+
+	read_rx_state = ACTIVE;
+	modem_rx_number = 0;
+	modem_rx_buffer_clear();
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
+	HAL_UART_Transmit_DMA(&huart3, str_out, 11);
+	//HAL_UART_Transmit_DMA(&huart3, at, 3);
+
+	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
+
+	osTimerStart(AT_TimerHandle, 300);
+	while(read_rx_state == ACTIVE)
+	{
+		if(strstr(modem_rx_buffer, "CLOSE OK") != NULL )
+		{
+			osTimerStop(AT_TimerHandle);
+			read_rx_state = NOT_ACTIVE;
+			return AT_OK;
+		}
+	}
+	return AT_ERROR;
 }
 
 uint8_t AT_QISEND (uint8_t* buf, uint16_t length) // maximum length = 1460
@@ -288,9 +321,24 @@ uint8_t AT_QISEND (uint8_t* buf, uint16_t length) // maximum length = 1460
 					read_rx_state = NOT_ACTIVE;
 					return AT_OK;
 				}
+				/*
+				else if( strstr(modem_rx_buffer, "ERROR\r\n") != NULL )
+				{
+					osTimerStop(AT_TimerHandle);
+					read_rx_state = NOT_ACTIVE;
+					return AT_ERROR;
+				}
+				*/
 			}
 			return AT_ERROR;
 		}
+		/*
+		else if( strstr(modem_rx_buffer, "ERROR\r\n") != NULL )
+		{
+			osTimerStop(AT_TimerHandle);
+			read_rx_state = NOT_ACTIVE;
+			return AT_ERROR;
+		}*/
 
 	}
 	return AT_ERROR;

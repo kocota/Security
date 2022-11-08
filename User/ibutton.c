@@ -1,8 +1,11 @@
+#include "cmsis_os.h"
 #include "ibutton.h"
 #include "stdio.h"
 #include "fm25v02.h"
 
+
 extern UART_HandleTypeDef huart1;
+extern osMutexId Fm25v02MutexHandle;
 
 //uint32_t ibutton_base[100] = {
 //0x1d000001, 0x86075f01,
@@ -209,7 +212,9 @@ HAL_StatusTypeDef ibutton_search_rom(IbuttonROM_Struct* id)
 		//fm25v02_read(add, &temp_ibutton_state);
 		//if(temp_ibutton_state == 0x01) // Проверяем есть ли запись в памяти
 		//{
+			osMutexWait(Fm25v02MutexHandle, osWaitForever); // берем мьютекс для работы с чтением/записью FRAM памяти.
 			fm25v02_fast_read(add, &id_fram[0], 8);
+			osMutexRelease(Fm25v02MutexHandle); // отдаем мьютекс для работы с чтением/записью FRAM памяти.
 			id_temp_rom_high = (((uint32_t)id_fram[7])<<24)|(((uint32_t)id_fram[6])<<16)|(((uint32_t)id_fram[5])<<8)|((uint32_t)id_fram[4]);
 			id_temp_rom_low = (((uint32_t)id_fram[3])<<24)|(((uint32_t)id_fram[2])<<16)|(((uint32_t)id_fram[1])<<8)|((uint32_t)id_fram[0]);
 			//id_temp_rom_high = (((uint32_t)id_fram[0])<<24)|(((uint32_t)id_fram[1])<<16)|(((uint32_t)id_fram[2])<<8)|((uint32_t)id_fram[3]);

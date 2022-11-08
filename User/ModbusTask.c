@@ -4,8 +4,10 @@
 #include "fm25v02.h"
 #include "m95.h"
 
+extern osTimerId Ring_Center_TimerHandle;
 extern osMessageQId ModbusQueueHandle;
 extern osMutexId UartMutexHandle;
+extern osMutexId Fm25v02MutexHandle;
 
 extern uint8_t modbus_buffer[256];
 
@@ -25,6 +27,7 @@ void ThreadModbusTask(void const * argument)
 	uint8_t i_max;
 	uint16_t modbus_size;
 	uint16_t modbus_address;
+	uint8_t modbus_packet_number;
 	//uint16_t modbus_data;
 
 	//uint8_t data[10];
@@ -200,15 +203,20 @@ void ThreadModbusTask(void const * argument)
 
 							modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для чтения
 							modbus_size = (((((uint16_t)modbus_buffer[4])<<8)&0xFF00)|(((uint16_t)modbus_buffer[5])&0xFF)); //  считаем количество регистров для чтения
-							if( modbus_address == SIGNAL_LEVEL ) // Если запрашивается уровень сигнала
+							if( modbus_address == SIGNAL_LEVEL_REG ) // Если запрашивается уровень сигнала
 							{
 
 								osMutexWait(UartMutexHandle, osWaitForever);
 								AT_CSQ(&level);
 								osMutexRelease(UartMutexHandle);
-								fm25v02_write(modbus_address, level);
 
+								osMutexWait(Fm25v02MutexHandle, osWaitForever);
+								fm25v02_write(modbus_address, level);
+								osMutexRelease(Fm25v02MutexHandle);
+
+								osMutexWait(Fm25v02MutexHandle, osWaitForever);
 								fm25v02_fast_read( modbus_address , &buf_out[0] , modbus_size); // читаем из памяти необходимое количество регистров
+								osMutexRelease(Fm25v02MutexHandle);
 
 								buf_out1[0] = 0x01;
 								buf_out1[1] = 0x03;
@@ -255,7 +263,9 @@ void ThreadModbusTask(void const * argument)
 
 							else
 							{
+								osMutexWait(Fm25v02MutexHandle, osWaitForever);
 								fm25v02_fast_read( modbus_address , &buf_out[0] , modbus_size); // читаем из памяти необходимое количество регистров
+								osMutexRelease(Fm25v02MutexHandle);
 
 								buf_out1[0] = 0x01;
 								buf_out1[1] = 0x03;
@@ -298,12 +308,16 @@ void ThreadModbusTask(void const * argument)
 						case(0x06): // запись одного регистра
 
 							modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для записи
+							modbus_size = (((((uint16_t)modbus_buffer[4])<<8)&0xFF00)|(((uint16_t)modbus_buffer[5])&0xFF)); //  считаем количество регистров для чтения
 
-							if( (modbus_address>=0x1090) && (modbus_address<=0x10FF) )
+							//if( (modbus_address>=0x1090) && (modbus_address<=0x10FF) )
+							if( !( (modbus_address>=0x1000) && (modbus_address<=0x108F) ) && !( (modbus_address<0x1000) && (modbus_address+modbus_size>0x1000) ) ) // модбас адресс не должен находиться в области статусных регистров, а также запись не должна затрагивать статусные регистры
 							{
 								//modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для записи
 
+								osMutexWait(Fm25v02MutexHandle, osWaitForever);
 								fm25v02_fast_write(modbus_address, &modbus_buffer[4], 2);
+								osMutexRelease(Fm25v02MutexHandle);
 
 								osMutexWait(UartMutexHandle, osWaitForever);
 								AT_QISEND(&modbus_buffer[0], 8);
@@ -327,17 +341,20 @@ void ThreadModbusTask(void const * argument)
 						case(0x10): // запись нескольких регистров
 
 							modbus_address = (((((uint16_t)modbus_buffer[2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[3])&0xFF)); // считаем адрес регистра для записи
+							modbus_size = (((((uint16_t)modbus_buffer[4])<<8)&0xFF00)|(((uint16_t)modbus_buffer[5])&0xFF)); //  считаем количество регистров для чтения
 
-							if( !( (modbus_address>=0x1000) && (modbus_address<=0x108F) ) )
+							if( !( (modbus_address>=0x1000) && (modbus_address<=0x108F) ) && !( (modbus_address<0x1000) && (modbus_address+modbus_size>0x1000) ) ) // модбас адресс не должен находиться в области статусных регистров, а также запись не должна затрагивать статусные регистры
 							{
 
 								for(uint8_t a=0; a<(modbus_buffer[6])/2; a++) // исправил 'i' на 'a', так как в функции fm25v02_fast_write() внутри уже есть 'i'
 								{
-									fm25v02_fast_write(modbus_address+a, &modbus_buffer[8+a*2], 1);
+									osMutexWait(Fm25v02MutexHandle, osWaitForever);
+									fm25v02_fast_write(modbus_address+a, &modbus_buffer[8+a*2], 1); // Записываем в память значения регистров полученных от сервера
+									osMutexRelease(Fm25v02MutexHandle);
 								}
 
 
-								buf_out1[0] = 0x01;
+								buf_out1[0] = 0x01; // формируем буфер для ответа на сервер, о том что полученные от сервера регистры записаны в память
 								buf_out1[1] = 0x10;
 								buf_out1[2] = modbus_buffer[2];
 								buf_out1[3] = modbus_buffer[3];
@@ -349,9 +366,25 @@ void ThreadModbusTask(void const * argument)
 								buf_out1[6] = (uint8_t)(crc_temp&0x00FF);
 								buf_out1[7] = (uint8_t)((crc_temp>>8)&0x00FF);
 
-								osMutexWait(UartMutexHandle, osWaitForever);
-								AT_QISEND(&buf_out1[0], 8);
-								osMutexRelease(UartMutexHandle);
+								osMutexWait(UartMutexHandle, osWaitForever); // берем мьютекс для работы с модемом
+								AT_QISEND(&buf_out1[0], 8); // отправляем буфер с ответом на сервер о том, что полученные регистры записаны в память
+								osMutexRelease(UartMutexHandle); // отдаем мьютекс для работы с модемом
+
+								if( modbus_address == CONTROL_LOOP_REG )
+								{
+									osMutexWait(Fm25v02MutexHandle, osWaitForever);
+									fm25v02_write(GPRS_CALL_REG, CALL_ON);
+									osMutexRelease(Fm25v02MutexHandle);
+									osTimerStart(Ring_Center_TimerHandle, 1);
+								}
+								if( modbus_address == 0x2710)
+								{
+									osMutexWait(Fm25v02MutexHandle, osWaitForever);
+									fm25v02_write(GPRS_CALL_REG, CALL_ON);
+									osMutexRelease(Fm25v02MutexHandle);
+									osTimerStart(Ring_Center_TimerHandle, 1);
+								}
+
 							}
 
 							/*

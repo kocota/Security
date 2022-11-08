@@ -28,6 +28,7 @@
 #include "gpio.h"
 #include "string.h"
 #include "m95.h"
+#include "modbus.h"
 
 /* USER CODE END Includes */
 
@@ -46,6 +47,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+IWDG_HandleTypeDef hiwdg;
+
 RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi2;
@@ -58,20 +61,20 @@ DMA_HandleTypeDef hdma_usart3_rx;
 osThreadId defaultTaskHandle;
 osMessageQId ModbusQueueHandle;
 osTimerId AT_TimerHandle;
+osTimerId Ring_Center_TimerHandle;
 osMutexId UartMutexHandle;
 osSemaphoreId TransmissionStateHandle;
 osSemaphoreId ReceiveStateHandle;
 /* USER CODE BEGIN PV */
+
 osThreadId IbuttonTaskHandle;
 osThreadId SecurityTaskHandle;
 osThreadId M95TaskHandle;
 osThreadId ModbusTaskHandle;
+osThreadId MainTaskHandle;
 
 osThreadId CurrentID;
-
-
-
-
+osMutexId Fm25v02MutexHandle;
 
 volatile uint8_t security_state = 0x00;
 RTC_TimeTypeDef security_time;
@@ -89,6 +92,8 @@ uint8_t modbus_buffer_number = 0;
 
 volatile uint8_t read_rx_state;
 
+extern control_register_struct control_registers;
+
 //char str1[] = "K\r\n";
 
 //uint8_t t=0;
@@ -103,14 +108,17 @@ static void MX_USART1_UART_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_RTC_Init(void);
+static void MX_IWDG_Init(void);
 void StartDefaultTask(void const * argument);
 void Callback_AT_Timer(void const * argument);
+void Callback_Ring_Center_Timer(void const * argument);
 
 /* USER CODE BEGIN PFP */
 void ThreadIbuttonTask(void const * argument);
 void ThreadSecurityTask(void const * argument);
 void ThreadM95Task(void const * argument);
 void ThreadModbusTask(void const * argument);
+void ThreadMainTask(void const * argument);
 
 /* USER CODE END PFP */
 
@@ -133,9 +141,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	LED_VD5_TOGGLE();
 	modem_rx_buffer[modem_rx_number++] = modem_rx_data[0];
+	osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 2000);
 	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
 
-	osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 0);
+
 	//osSemaphoreRelease(ReceiveStateHandle);
 /*
 	if( modem_rx_data[0] == '\n')
@@ -204,6 +213,7 @@ int main(void)
   MX_DMA_Init();
   MX_USART3_UART_Init();
   MX_RTC_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
 
   //LED_VD3_ON();
@@ -236,6 +246,10 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
+  osMutexDef(Fm25v02Mutex);
+  Fm25v02MutexHandle = osMutexCreate(osMutex(Fm25v02Mutex));
+
+
   /* USER CODE END RTOS_MUTEX */
 
   /* Create the semaphores(s) */
@@ -255,6 +269,10 @@ int main(void)
   /* definition and creation of AT_Timer */
   osTimerDef(AT_Timer, Callback_AT_Timer);
   AT_TimerHandle = osTimerCreate(osTimer(AT_Timer), osTimerOnce, NULL);
+
+  /* definition and creation of Ring_Center_Timer */
+  osTimerDef(Ring_Center_Timer, Callback_Ring_Center_Timer);
+  Ring_Center_TimerHandle = osTimerCreate(osTimer(Ring_Center_Timer), osTimerOnce, NULL);
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
@@ -288,6 +306,9 @@ int main(void)
 
   osThreadDef(ModbusTask, ThreadModbusTask, osPriorityNormal, 0, 128);
   ModbusTaskHandle = osThreadCreate(osThread(ModbusTask), NULL);
+
+  osThreadDef(MainTask, ThreadMainTask, osPriorityNormal, 0, 128);
+  MainTaskHandle = osThreadCreate(osThread(MainTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
@@ -321,8 +342,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE
+                              |RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
@@ -350,6 +373,34 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief IWDG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IWDG_Init(void)
+{
+
+  /* USER CODE BEGIN IWDG_Init 0 */
+
+  /* USER CODE END IWDG_Init 0 */
+
+  /* USER CODE BEGIN IWDG_Init 1 */
+
+  /* USER CODE END IWDG_Init 1 */
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
+  hiwdg.Init.Reload = 4000;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IWDG_Init 2 */
+
+  /* USER CODE END IWDG_Init 2 */
+
+}
+
+/**
   * @brief RTC Initialization Function
   * @param None
   * @retval None
@@ -360,6 +411,9 @@ static void MX_RTC_Init(void)
   /* USER CODE BEGIN RTC_Init 0 */
 
   /* USER CODE END RTC_Init 0 */
+
+  RTC_TimeTypeDef sTime = {0};
+  RTC_DateTypeDef sDate = {0};
 
   /* USER CODE BEGIN RTC_Init 1 */
 
@@ -374,6 +428,31 @@ static void MX_RTC_Init(void)
   hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
   hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
   if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* USER CODE BEGIN Check_RTC_BKUP */
+
+  /* USER CODE END Check_RTC_BKUP */
+
+  /** Initialize RTC and set the Time and Date
+  */
+  sTime.Hours = 0x17;
+  sTime.Minutes = 0x47;
+  sTime.Seconds = 0x0;
+  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sDate.WeekDay = RTC_WEEKDAY_SATURDAY;
+  sDate.Month = RTC_MONTH_NOVEMBER;
+  sDate.Date = 0x5;
+  sDate.Year = 0x22;
+
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
   {
     Error_Handler();
   }
@@ -607,6 +686,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PE0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
 }
 
 /* USER CODE BEGIN 4 */
@@ -628,7 +713,7 @@ void StartDefaultTask(void const * argument)
 
   for(;;)
   {
-
+	HAL_IWDG_Refresh(&hiwdg);
 	LED_VD3_TOGGLE();
     osDelay(1000);
   }
@@ -644,6 +729,27 @@ void Callback_AT_Timer(void const * argument)
 	//osThreadResume(M95TaskHandle);
 
   /* USER CODE END Callback_AT_Timer */
+}
+
+/* Callback_Ring_Center_Timer function */
+void Callback_Ring_Center_Timer(void const * argument)
+{
+  /* USER CODE BEGIN Callback_Ring_Center_Timer */
+	uint8_t timer_temp_reg;
+	osMutexWait(Fm25v02MutexHandle, osWaitForever);
+	fm25v02_read(GPRS_CALL_REG, &timer_temp_reg);
+	osMutexRelease(Fm25v02MutexHandle);
+	control_registers.gprs_call_reg = timer_temp_reg;
+
+	if(control_registers.gprs_call_reg == CALL_ON)
+	{
+		osMutexWait(UartMutexHandle, osWaitForever);
+		request_to_server();
+		osMutexRelease(UartMutexHandle);
+	}
+	//LED8_TOGGLE();
+	osTimerStart(Ring_Center_TimerHandle, 30000);
+  /* USER CODE END Callback_Ring_Center_Timer */
 }
 
 /**
@@ -674,6 +780,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
+	//LED7_ON();
+	NVIC_SystemReset();
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)

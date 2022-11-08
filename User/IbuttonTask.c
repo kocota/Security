@@ -1,19 +1,22 @@
+#include "stm32f4xx_hal.h"
 #include "IbuttonTask.h"
+#include "SecurityTask.h"
 #include "cmsis_os.h"
 #include "gpio.h"
 #include "ibutton.h"
-#include "stdio.h"
-#include "fm25v02.h"
-#include "security.h"
-#include "m95.h"
 #include "modbus.h"
 
+
 extern volatile uint8_t security_state;
-extern RTC_HandleTypeDef hrtc;
-extern RTC_TimeTypeDef security_time;
-extern RTC_DateTypeDef security_date;
+extern osTimerId Ring_Center_TimerHandle;
+//extern RTC_HandleTypeDef hrtc;
+//extern RTC_TimeTypeDef security_time;
+//extern RTC_DateTypeDef security_date;
 extern osThreadId IbuttonTaskHandle;
-extern osMutexId UartMutexHandle;
+//extern osMutexId UartMutexHandle;
+extern osMutexId Fm25v02MutexHandle;
+
+
 
 uint8_t t_data[50];
 
@@ -27,19 +30,8 @@ uint32_t t;
 //Поток обработки ibutton и постановки на сигнализацию-------------------------
 void ThreadIbuttonTask(void const * argument)
 {
+	uint8_t ibutton_temp[8];
 	osThreadSuspend(IbuttonTaskHandle);
-
-	printf("%lu \n", HAL_GetTick());
-	fm25v02_fast_read(0x0000, t_data, 25);
-	printf("%lu \n", HAL_GetTick());
-
-	IbuttonROM.IbuttonROM_High = 0x92000A04;
-	IbuttonROM.IbuttonROM_Low = 0x5AD95901;
-
-	printf("%lu \n", HAL_GetTick());
-	ibutton_delete_rom(&IbuttonROM);
-	printf("%lu \n", HAL_GetTick());
-
 
 
 
@@ -51,99 +43,110 @@ void ThreadIbuttonTask(void const * argument)
 
 			if( ibutton_read_rom(&IbuttonROM) == HAL_OK ) // Считываем ROM-код таблетки
 			{
-				/*
-				if( ibutton_write_rom(&IbuttonROM) == HAL_OK )
+				if( (ibutton_search_rom(&IbuttonROM) == HAL_OK) && (IbuttonROM.IbuttonROM_High != 0) && (IbuttonROM.IbuttonROM_Low != 0) )
 				{
-					BUZ_ON();
-					HAL_Delay(100);
-					BUZ_OFF();
-				}
-				*/
+					ibutton_temp[0] = (uint8_t)(IbuttonROM.IbuttonROM_Low);
+					ibutton_temp[1] = (uint8_t)(IbuttonROM.IbuttonROM_Low>>8);
+					ibutton_temp[2] = (uint8_t)(IbuttonROM.IbuttonROM_Low>>16);
+					ibutton_temp[3] = (uint8_t)(IbuttonROM.IbuttonROM_Low>>24);
+					ibutton_temp[4] = (uint8_t)(IbuttonROM.IbuttonROM_High);
+					ibutton_temp[5] = (uint8_t)(IbuttonROM.IbuttonROM_High>>8);
+					ibutton_temp[6] = (uint8_t)(IbuttonROM.IbuttonROM_High>>16);
+					ibutton_temp[7] = (uint8_t)(IbuttonROM.IbuttonROM_High>>24);
 
-				if( ibutton_search_rom(&IbuttonROM) == HAL_OK )
-				{
-					//LED_VD4_TOGGLE();
+					osMutexWait(Fm25v02MutexHandle, osWaitForever);
 					fm25v02_read(SECURITY_STATUS_REG, &security_state);//Читаем SECURITY_STATE_BYTE, хранящий состояние охранной сигнализации, из памяти в переменную security_state
+					osMutexRelease(Fm25v02MutexHandle);
+
 					if( (security_state == DISABLED_BY_IBUTTON) || (security_state == DISABLED_BY_SERVER) || (security_state == RESERVED_0) )//Условие если сигнализация выключена
 			  		{
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(SECURITY_STATUS_REG, ENABLED_BY_IBUTTON);
+						osMutexRelease(Fm25v02MutexHandle);
 
-						/*
-			  			HAL_RTC_GetTime(&hrtc, &security_time , RTC_FORMAT_BCD);
-			  			security_time.Hours = RTC_Bcd2ToByte(security_time.Hours);
-			  			security_time.Minutes = RTC_Bcd2ToByte(security_time.Minutes);
-			  			security_time.Seconds = RTC_Bcd2ToByte(security_time.Seconds);
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(IBUTTON_COMPLETE_0_REG, ibutton_temp[0]);
+						fm25v02_write(IBUTTON_COMPLETE_1_REG, ibutton_temp[1]);
+						fm25v02_write(IBUTTON_COMPLETE_2_REG, ibutton_temp[2]);
+						fm25v02_write(IBUTTON_COMPLETE_3_REG, ibutton_temp[3]);
+						fm25v02_write(IBUTTON_COMPLETE_4_REG, ibutton_temp[4]);
+						fm25v02_write(IBUTTON_COMPLETE_5_REG, ibutton_temp[5]);
+						fm25v02_write(IBUTTON_COMPLETE_6_REG, ibutton_temp[6]);
+						fm25v02_write(IBUTTON_COMPLETE_7_REG, ibutton_temp[7]);
+						osMutexRelease(Fm25v02MutexHandle);
 
-			  			HAL_RTC_GetDate(&hrtc, &security_date, RTC_FORMAT_BCD);
-			  			security_date.Date = RTC_Bcd2ToByte(security_date.Date);
-			  			security_date.Month = RTC_Bcd2ToByte(security_date.Month);
-			  			security_date.Year = RTC_Bcd2ToByte(security_date.Year);
-			  			if( IbuttonROM.IbuttonROM_Low == 0x86075F01)
-			  				{
-			  					printf("Security ON by %s   time: %u:%u:%u %u/%u/%u \n", "Yagin Aleksandr", security_time.Hours, security_time.Minutes, security_time.Seconds, security_date.Date, security_date.Month, security_date.Year);
-			  			  	}
-			  			if( IbuttonROM.IbuttonROM_Low == 0x5AD95901)
-			  			  	{
-			  					printf("Security ON by %s   time: %u:%u:%u %u/%u/%u \n", "Banshikov Aleksandr", security_time.Hours, security_time.Minutes, security_time.Seconds, security_date.Date, security_date.Month, security_date.Year);
-			  			  	}
-			  			*/
-			  			BUZ_ON();
+			  			BUZ_ON(); // пикаем зуммером
 			  			HAL_Delay(100);
 			  			BUZ_OFF();
-			  			for(uint8_t i=0; i<8; i++)
+
+			  			for(uint8_t i=0; i<8; i++) // моргаем контрольным светодиодом
 			  			{
 			  				LED_OUT_TOGGLE();
 			  				HAL_Delay(1000);
 			  			}
+
 			  			LED2_ON();
 			  			LED_OUT_ON();
 
-			  			osMutexWait(UartMutexHandle, osWaitForever);
+						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+			  			//fm25v02_write(GPRS_CALL_REG, 0x01); // записываем в память флаг, что устройство делает запрос на сервер
+			  			//osMutexRelease(Fm25v02MutexHandle);
+			  			/*
+			  			osMutexWait(UartMutexHandle, osWaitForever); // отправляем запрос на сервер
 			  			request_to_server();
 			  			osMutexRelease(UartMutexHandle);
+			  			*/
+			  			//NVIC_SystemReset();
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
+						osTimerStart(Ring_Center_TimerHandle, 10);
 
 			  		}
 					else if( (security_state == ENABLED_BY_IBUTTON) || (security_state == ENABLED_BY_SERVER) )
 			  		{
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 			  			fm25v02_write(SECURITY_STATUS_REG, DISABLED_BY_IBUTTON);
+			  			osMutexRelease(Fm25v02MutexHandle);
 
-			  			/*r
-			  			HAL_RTC_GetTime(&hrtc, &security_time , RTC_FORMAT_BCD);
-			  			security_time.Hours = RTC_Bcd2ToByte(security_time.Hours);
-			  			security_time.Minutes = RTC_Bcd2ToByte(security_time.Minutes);
-			  			security_time.Seconds = RTC_Bcd2ToByte(security_time.Seconds);
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(IBUTTON_COMPLETE_0_REG, ibutton_temp[0]);
+						fm25v02_write(IBUTTON_COMPLETE_1_REG, ibutton_temp[1]);
+						fm25v02_write(IBUTTON_COMPLETE_2_REG, ibutton_temp[2]);
+						fm25v02_write(IBUTTON_COMPLETE_3_REG, ibutton_temp[3]);
+						fm25v02_write(IBUTTON_COMPLETE_4_REG, ibutton_temp[4]);
+						fm25v02_write(IBUTTON_COMPLETE_5_REG, ibutton_temp[5]);
+						fm25v02_write(IBUTTON_COMPLETE_6_REG, ibutton_temp[6]);
+						fm25v02_write(IBUTTON_COMPLETE_7_REG, ibutton_temp[7]);
+						osMutexRelease(Fm25v02MutexHandle);
 
-			  			HAL_RTC_GetDate(&hrtc, &security_date, RTC_FORMAT_BCD);
-			  			security_date.Date = RTC_Bcd2ToByte(security_date.Date);
-			  			security_date.Month = RTC_Bcd2ToByte(security_date.Month);
-			  			security_date.Year = RTC_Bcd2ToByte(security_date.Year);
-
-			  			if( IbuttonROM.IbuttonROM_Low == 0x86075F01)
-			  				{
-			  					printf("Security OFF by %s   time: %u:%u:%u %u/%u/%u \n", "Yagin Aleksandr", security_time.Hours, security_time.Minutes, security_time.Seconds, security_date.Date, security_date.Month, security_date.Year);
-			  			  	}
-			  			if( IbuttonROM.IbuttonROM_Low == 0x5AD95901)
-			  			  	{
-			  				  	printf("Security OFF by %s   time: %u:%u:%u %u/%u/%u \n", "Banshikov Aleksandr", security_time.Hours, security_time.Minutes, security_time.Seconds, security_date.Date, security_date.Month, security_date.Year);
-			  			  	}
-			  			*/
-
-			  			BUZ_ON();
+			  			BUZ_ON(); // пикаем зуммером
 			  			HAL_Delay(100);
 			  			BUZ_OFF();
-			  			for(uint8_t i=0; i<40; i++)
+
+			  			for(uint8_t i=0; i<40; i++) // моргаем контрольным светодиодом
 			  			{
 			  				LED_OUT_TOGGLE();
 			  				HAL_Delay(200);
 			  			}
+
 			  			LED2_OFF();
 			  			LED_OUT_OFF();
 
-			  			osMutexWait(UartMutexHandle, osWaitForever);
+						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+			  			//fm25v02_write(GPRS_CALL_REG, 0x01); // записываем в память флаг, что устройство делает запрос на сервер
+			  			//osMutexRelease(Fm25v02MutexHandle);
+			  			/*
+			  			osMutexWait(UartMutexHandle, osWaitForever); // отправляем запрос на сервер
 			  			request_to_server();
 			  			osMutexRelease(UartMutexHandle);
+			  			*/
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
+						osTimerStart(Ring_Center_TimerHandle, 10);
 
-			  		  }
+			  		}
 				}
 			}
 
@@ -222,4 +225,25 @@ void ThreadIbuttonTask(void const * argument)
 	}
 }
 //------------------------------------------------------------
+
+
+/*
+	HAL_RTC_GetTime(&hrtc, &security_time , RTC_FORMAT_BCD);
+	security_time.Hours = RTC_Bcd2ToByte(security_time.Hours);
+	security_time.Minutes = RTC_Bcd2ToByte(security_time.Minutes);
+	security_time.Seconds = RTC_Bcd2ToByte(security_time.Seconds);
+
+	HAL_RTC_GetDate(&hrtc, &security_date, RTC_FORMAT_BCD);
+	security_date.Date = RTC_Bcd2ToByte(security_date.Date);
+	security_date.Month = RTC_Bcd2ToByte(security_date.Month);
+	security_date.Year = RTC_Bcd2ToByte(security_date.Year);
+	if( IbuttonROM.IbuttonROM_Low == 0x86075F01)
+		{
+			printf("Security ON by %s   time: %u:%u:%u %u/%u/%u \n", "Yagin Aleksandr", security_time.Hours, security_time.Minutes, security_time.Seconds, security_date.Date, security_date.Month, security_date.Year);
+	  	}
+	if( IbuttonROM.IbuttonROM_Low == 0x5AD95901)
+	  	{
+			printf("Security ON by %s   time: %u:%u:%u %u/%u/%u \n", "Banshikov Aleksandr", security_time.Hours, security_time.Minutes, security_time.Seconds, security_date.Date, security_date.Month, security_date.Year);
+	  	}
+	*/
 
