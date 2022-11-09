@@ -82,7 +82,7 @@ void ThreadSecurityTask(void const * argument)
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
-						osTimerStart(Ring_Center_TimerHandle, 1);
+						//osTimerStart(Ring_Center_TimerHandle, 1);
 						/*
 						for(uint8_t i=0; i<40; i++)
 						{

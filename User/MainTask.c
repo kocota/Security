@@ -4,6 +4,7 @@
 #include "gpio.h"
 #include "fm25v02.h"
 #include "SecurityTask.h"
+#include "m95.h"
 
 extern osTimerId Ring_Center_TimerHandle;
 extern RTC_HandleTypeDef hrtc;
@@ -19,27 +20,22 @@ RTC_DateTypeDef set_date;
 
 uint16_t status_registers_quantity = 58; // количество статусных регистров
 
-uint32_t address1[10];
+//uint8_t address1[10] = {0, 0, 0, 3, 4, 1, 0, 0, 0, 0};
+//uint8_t address1[10] = "SEND OK   ";
 
+//uint8_t len;
+
+//uint8_t asdf[3] = "END";
+
+//uint32_t* a;
 
 
 
 void ThreadMainTask(void const * argument)
 {
-	//uint8_t status_reg_temp;
 
 	osDelay(2000);
-	//osTimerStart(Ring_Center_TimerHandle, 30000);
 
-	/*
-	for(uint8_t i=0; i<status_registers_quantity; i++) // читаем регистры статуса из памяти
-	{
-		fm25v02_fast_read(VERSION_REG+i, (&status_registers.version_reg)+2*i, 1);
-		//fm25v02_fast_read(VERSION_REG+i, &status_registers+i, 1);
-	}
-	*/
-	//fm25v02_write(ALARM_LOOP_REG, 8);
-	//fm25v02_write(ERROR_LOOP_REG, 4);
 
 	for(;;)
 	{
@@ -61,7 +57,7 @@ void ThreadMainTask(void const * argument)
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
-				osTimerStart(Ring_Center_TimerHandle, 1);
+				//osTimerStart(Ring_Center_TimerHandle, 1);
 			}
 		}
 		else // если на пине PFO микросхемы TPS3306-15 нет наличия единицы
@@ -79,7 +75,7 @@ void ThreadMainTask(void const * argument)
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
-				osTimerStart(Ring_Center_TimerHandle, 1);
+				//osTimerStart(Ring_Center_TimerHandle, 1);
 			}
 		}
 
@@ -123,7 +119,7 @@ void ThreadMainTask(void const * argument)
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
-				osTimerStart(Ring_Center_TimerHandle, 1);
+				//osTimerStart(Ring_Center_TimerHandle, 1);
 
 	  			BUZ_ON();
 	  			HAL_Delay(100);
@@ -150,7 +146,7 @@ void ThreadMainTask(void const * argument)
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
-				osTimerStart(Ring_Center_TimerHandle, 1);
+				//osTimerStart(Ring_Center_TimerHandle, 1);
 
 	  			BUZ_ON();
 	  			HAL_Delay(100);
@@ -179,7 +175,7 @@ void ThreadMainTask(void const * argument)
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
-				osTimerStart(Ring_Center_TimerHandle, 1);
+				//osTimerStart(Ring_Center_TimerHandle, 1);
 
 	  			BUZ_ON();
 	  			HAL_Delay(100);
@@ -287,7 +283,7 @@ void ThreadMainTask(void const * argument)
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
-				osTimerStart(Ring_Center_TimerHandle, 1);
+				//osTimerStart(Ring_Center_TimerHandle, 1);
 
 			break;
 
@@ -309,7 +305,7 @@ void ThreadMainTask(void const * argument)
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
-				osTimerStart(Ring_Center_TimerHandle, 1);
+				//osTimerStart(Ring_Center_TimerHandle, 1);
 
 			break;
 

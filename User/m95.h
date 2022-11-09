@@ -59,6 +59,8 @@ uint8_t AT_QIHEAD (uint8_t mode);
 uint8_t AT_QISHOWPT (uint8_t mode);
 uint8_t AT_QPOWD (uint8_t mode);
 uint8_t request_to_server();
+uint8_t find_str(uint8_t* buf_in, uint16_t buf_in_len, uint8_t* buf_search, uint16_t buf_search_len);
+uint8_t ATE0 (void);
 //------------------------------------------------------------
 
 

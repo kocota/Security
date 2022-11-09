@@ -72,9 +72,14 @@ osThreadId SecurityTaskHandle;
 osThreadId M95TaskHandle;
 osThreadId ModbusTaskHandle;
 osThreadId MainTaskHandle;
+osThreadId ModbusPacketTaskHandle;
+osThreadId CallRingCenterTaskHandle;
 
 osThreadId CurrentID;
 osMutexId Fm25v02MutexHandle;
+
+osSemaphoreId ModbusPacketReceiveHandle;
+osSemaphoreId CallRingCenterHandle;
 
 volatile uint8_t security_state = 0x00;
 RTC_TimeTypeDef security_time;
@@ -86,7 +91,7 @@ uint8_t flash1[20];
 uint8_t modem_tx_data[256];
 uint8_t modem_rx_data[256];
 char modem_rx_buffer[256];
-uint8_t modbus_buffer[256];
+uint8_t modbus_buffer[20][256];
 uint8_t modem_rx_number = 0;
 uint8_t modbus_buffer_number = 0;
 
@@ -119,6 +124,8 @@ void ThreadSecurityTask(void const * argument);
 void ThreadM95Task(void const * argument);
 void ThreadModbusTask(void const * argument);
 void ThreadMainTask(void const * argument);
+void ThreadModbusPacketTask(void const * argument);
+void ThreadCallRingCenterTask(void const * argument);
 
 /* USER CODE END PFP */
 
@@ -263,6 +270,12 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
+  osSemaphoreDef(ModbusPacketReceive);
+  ModbusPacketReceiveHandle = osSemaphoreCreate(osSemaphore(ModbusPacketReceive), 1);
+
+  osSemaphoreDef(CallRingCenter);
+  CallRingCenterHandle = osSemaphoreCreate(osSemaphore(CallRingCenter), 1);
+
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* Create the timer(s) */
@@ -309,6 +322,12 @@ int main(void)
 
   osThreadDef(MainTask, ThreadMainTask, osPriorityNormal, 0, 128);
   MainTaskHandle = osThreadCreate(osThread(MainTask), NULL);
+
+  osThreadDef(ModbusPacketTask, ThreadModbusPacketTask, osPriorityNormal, 0, 128);
+  ModbusPacketTaskHandle = osThreadCreate(osThread(ModbusPacketTask), NULL);
+
+  osThreadDef(CallRingCenterTask, ThreadCallRingCenterTask, osPriorityNormal, 0, 128);
+  CallRingCenterTaskHandle = osThreadCreate(osThread(CallRingCenterTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
@@ -390,10 +409,10 @@ static void MX_IWDG_Init(void)
   hiwdg.Instance = IWDG;
   hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
   hiwdg.Init.Reload = 4000;
-  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  //if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  //{
+    //Error_Handler();
+  //}
   /* USER CODE BEGIN IWDG_Init 2 */
 
   /* USER CODE END IWDG_Init 2 */
@@ -713,7 +732,7 @@ void StartDefaultTask(void const * argument)
 
   for(;;)
   {
-	HAL_IWDG_Refresh(&hiwdg);
+	//HAL_IWDG_Refresh(&hiwdg);
 	LED_VD3_TOGGLE();
     osDelay(1000);
   }
@@ -735,6 +754,7 @@ void Callback_AT_Timer(void const * argument)
 void Callback_Ring_Center_Timer(void const * argument)
 {
   /* USER CODE BEGIN Callback_Ring_Center_Timer */
+	/*
 	uint8_t timer_temp_reg;
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
 	fm25v02_read(GPRS_CALL_REG, &timer_temp_reg);
@@ -744,11 +764,12 @@ void Callback_Ring_Center_Timer(void const * argument)
 	if(control_registers.gprs_call_reg == CALL_ON)
 	{
 		osMutexWait(UartMutexHandle, osWaitForever);
-		request_to_server();
+		while(request_to_server() != AT_OK){};
 		osMutexRelease(UartMutexHandle);
 	}
-	//LED8_TOGGLE();
+
 	osTimerStart(Ring_Center_TimerHandle, 30000);
+	*/
   /* USER CODE END Callback_Ring_Center_Timer */
 }
 

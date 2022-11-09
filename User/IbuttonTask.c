@@ -75,6 +75,10 @@ void ThreadIbuttonTask(void const * argument)
 						fm25v02_write(IBUTTON_COMPLETE_7_REG, ibutton_temp[7]);
 						osMutexRelease(Fm25v02MutexHandle);
 
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
+
 			  			BUZ_ON(); // пикаем зуммером
 			  			HAL_Delay(100);
 			  			BUZ_OFF();
@@ -97,10 +101,8 @@ void ThreadIbuttonTask(void const * argument)
 			  			osMutexRelease(UartMutexHandle);
 			  			*/
 			  			//NVIC_SystemReset();
-						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
-						osMutexRelease(Fm25v02MutexHandle);
-						osTimerStart(Ring_Center_TimerHandle, 10);
+
+						//osTimerStart(Ring_Center_TimerHandle, 10);
 
 			  		}
 					else if( (security_state == ENABLED_BY_IBUTTON) || (security_state == ENABLED_BY_SERVER) )
@@ -118,6 +120,10 @@ void ThreadIbuttonTask(void const * argument)
 						fm25v02_write(IBUTTON_COMPLETE_5_REG, ibutton_temp[5]);
 						fm25v02_write(IBUTTON_COMPLETE_6_REG, ibutton_temp[6]);
 						fm25v02_write(IBUTTON_COMPLETE_7_REG, ibutton_temp[7]);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 			  			BUZ_ON(); // пикаем зуммером
@@ -141,10 +147,8 @@ void ThreadIbuttonTask(void const * argument)
 			  			request_to_server();
 			  			osMutexRelease(UartMutexHandle);
 			  			*/
-						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
-						osMutexRelease(Fm25v02MutexHandle);
-						osTimerStart(Ring_Center_TimerHandle, 10);
+
+						//osTimerStart(Ring_Center_TimerHandle, 10);
 
 			  		}
 				}

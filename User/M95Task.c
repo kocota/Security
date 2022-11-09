@@ -11,8 +11,9 @@ extern osSemaphoreId ReceiveStateHandle;
 extern osMutexId UartMutexHandle;
 extern osMutexId Fm25v02MutexHandle;
 extern osTimerId Ring_Center_TimerHandle;
+extern osThreadId CallRingCenterTaskHandle;
 
-extern uint8_t modem_rx_data[100];
+extern uint8_t modem_rx_data[256];
 
 extern uint8_t level;
 
@@ -36,14 +37,16 @@ volatile uint8_t request_state = 0;
 
 void ThreadM95Task(void const * argument)
 {
+	//osThreadSuspendAll();
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever); // обнуляем семафор, при создании семафора его значение равно 1
 	osSemaphoreWait(ReceiveStateHandle, osWaitForever); // обнуляем семафор, при создании семафора его значение равно 1
-	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1); // включаем прием от модема
+	//HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1); // включаем прием от модема
 
 	//BUZ_ON();
 	//HAL_Delay(300);
 	//BUZ_OFF();
+
 
 	HAL_Delay(2000); // ждем
 	state = AT(); // проверяем связь с модемом
@@ -54,7 +57,9 @@ void ThreadM95Task(void const * argument)
 		HAL_Delay(7000);
 	}
 
+
 	state = AT(); // проверяем связь с модемом
+
 
 	//----Обнуление регистров IP адреса и порта сервера, обнуление ID устройства------
 	// Для записи регистров раскоментировать строки и прошить контроллер
@@ -96,6 +101,8 @@ void ThreadM95Task(void const * argument)
 		port = 35050; // значение по умолчанию
 	}
 
+
+
 	for(;;)
 	{
 		osMutexWait(UartMutexHandle, osWaitForever);
@@ -107,6 +114,11 @@ void ThreadM95Task(void const * argument)
 				m95_power_on();
 			}
 			//HAL_Delay(10000);
+		}
+
+		if( ATE0() == AT_OK )
+		{
+			LED8_ON();
 		}
 
 		osMutexRelease(UartMutexHandle);
@@ -172,7 +184,7 @@ void ThreadM95Task(void const * argument)
 			break;
 
 			case IP_CLOSE:
-
+				osThreadSuspend(CallRingCenterTaskHandle);
 				LED3_OFF();
 				if( AT_QIOPEN("TCP", ip1 , ip2, ip3, ip4, port) == AT_OK )
 				{
@@ -196,6 +208,7 @@ void ThreadM95Task(void const * argument)
 
 			case CONNECT_OK: // Если соединение установлено
 
+				osThreadResume(CallRingCenterTaskHandle); // пробуждаем процесс запроса к серверу
 				LED3_ON();
 				if( AT_COPS() == AT_OK )
 				{
@@ -213,7 +226,7 @@ void ThreadM95Task(void const * argument)
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
 					fm25v02_write(GPRS_CALL_REG, CALL_ON);
 					osMutexRelease(Fm25v02MutexHandle);
-					osTimerStart(Ring_Center_TimerHandle, 1);
+					//osTimerStart(Ring_Center_TimerHandle, 1);
 				}
 
 			break;
@@ -287,7 +300,7 @@ void ThreadM95Task(void const * argument)
 
 		//}
 
-		osDelay(3000);
+		osDelay(1000);
 
 	}
 }

@@ -10,13 +10,38 @@ extern UART_HandleTypeDef huart3;
 extern osTimerId AT_TimerHandle;
 extern osSemaphoreId TransmissionStateHandle;
 
-extern char modem_rx_buffer[100];
-extern uint8_t modem_rx_data[100];
+extern char modem_rx_buffer[256];
+extern uint8_t modem_rx_data[256];
 extern uint8_t modem_rx_number;
 extern uint8_t read_rx_state;
 
+char find_buffer[256];
 
+//uint8_t send_ok[] = "SEND OK\r\n";
+uint8_t send_ok[] = "SEND OK";
 
+uint8_t find_str(uint8_t* buf_in, uint16_t buf_in_len, uint8_t* buf_search, uint16_t buf_search_len)
+{
+	uint8_t j=0;
+
+	for(uint8_t i=0; i<buf_in_len; i++)
+	{
+		if( *( buf_in+i ) == *(buf_search+j) )
+		{
+			j++;
+			if(j>=buf_search_len)
+			{
+				return 1;
+			}
+		}
+		else
+		{
+			j=0;
+		}
+	}
+
+	return 0;
+}
 
 void m95_power_on(void) // функция включения питания
 {
@@ -45,6 +70,36 @@ void modem_rx_buffer_clear (void)
 		modem_rx_buffer[i] = 0;
 	}
 }
+
+uint8_t ATE0 (void)
+{
+	char str_out[5];
+	sprintf(str_out, "ATE0\n");
+
+	read_rx_state = ACTIVE;
+	modem_rx_number = 0;
+	modem_rx_buffer_clear();
+	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
+	HAL_UART_Transmit_DMA(&huart3, str_out, 5);
+	//HAL_UART_Transmit_DMA(&huart3, at, 3);
+
+	osSemaphoreWait(TransmissionStateHandle, osWaitForever);
+
+	osTimerStart(AT_TimerHandle, 300);
+	while(read_rx_state == ACTIVE)
+	{
+		if(strstr(modem_rx_buffer, "OK\r\n") != NULL )
+		{
+			osTimerStop(AT_TimerHandle);
+			read_rx_state = NOT_ACTIVE;
+			return AT_OK;
+		}
+	}
+	return AT_ERROR;
+}
+
+
+
 
 uint8_t AT (void)
 {
@@ -310,17 +365,28 @@ uint8_t AT_QISEND (uint8_t* buf, uint16_t length) // maximum length = 1460
 
 			osSemaphoreWait(TransmissionStateHandle, osWaitForever);
 
-			osTimerStart(AT_TimerHandle, 300); // маленькое время!!!!!
+			osTimerStart(AT_TimerHandle, 3000); // маленькое время!!!!!
 			while(read_rx_state == ACTIVE)
 			{
 				//osThreadSuspend(osThreadGetId());
 				//osSemaphoreWait(ReceiveStateHandle, osWaitForever);
+
+				if( find_str(modem_rx_buffer, 255, send_ok, 7) == 1 )
+				{
+					osTimerStop(AT_TimerHandle);
+					read_rx_state = NOT_ACTIVE;
+					return AT_OK;
+				}
+
+				/*
 				if( strstr(modem_rx_buffer, "SEND OK\r\n") != NULL )
 				{
 					osTimerStop(AT_TimerHandle);
 					read_rx_state = NOT_ACTIVE;
 					return AT_OK;
 				}
+				*/
+				//HAL_Delay(1);
 				/*
 				else if( strstr(modem_rx_buffer, "ERROR\r\n") != NULL )
 				{
