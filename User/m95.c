@@ -148,6 +148,16 @@ uint8_t AT_CSQ (uint8_t* signal_level)
 		//osThreadSuspend(M95TaskHandle);
 		if(strstr(modem_rx_buffer, "+CSQ:") != NULL )
 		{
+			if(modem_rx_buffer[9]==',') // в случае, если ATE0 (эхо выключено)
+			{
+				*signal_level = modem_rx_buffer[8]-0x30;
+			}
+			else
+			{
+				*signal_level = (modem_rx_buffer[8]-0x30)*10 + (modem_rx_buffer[9]-0x30);
+			}
+			// если ATE1 (эхо включено)
+			/*
 			if(modem_rx_buffer[15]==',')
 			{
 				*signal_level = modem_rx_buffer[14]-0x30;
@@ -156,6 +166,7 @@ uint8_t AT_CSQ (uint8_t* signal_level)
 			{
 				*signal_level = (modem_rx_buffer[14]-0x30)*10 + (modem_rx_buffer[15]-0x30);
 			}
+			*/
 		}
 		if(strstr(modem_rx_buffer, "OK") != NULL )
 		{
@@ -189,11 +200,20 @@ uint8_t AT_QCCID ( uint8_t* id, uint64_t* temp_id) // Команда для дл
 			osTimerStop(AT_TimerHandle);
 			read_rx_state = NOT_ACTIVE;
 
+			// В случае, когда ATE0, эхо выключено
+			for(uint8_t i=0; i<19; i++)
+			{
+				*(temp_id+i) = (uint8_t)modem_rx_buffer[2+i] - 48;
+				//temp_id[i] = (uint8_t)modem_rx_buffer[10+i] - 48;
+			}
+			// В случае, когда ATE1, эхо включено
+			/*
 			for(uint8_t i=0; i<19; i++)
 			{
 				*(temp_id+i) = (uint8_t)modem_rx_buffer[10+i] - 48;
 				//temp_id[i] = (uint8_t)modem_rx_buffer[10+i] - 48;
 			}
+			*/
 
 			*(temp_id+19) = *temp_id*1000000000000000000 + *(temp_id+1)*100000000000000000 + *(temp_id+2)*10000000000000000 + *(temp_id+3)*1000000000000000 + *(temp_id+4)*100000000000000 + *(temp_id+5)*10000000000000 + *(temp_id+6)*1000000000000 + *(temp_id+7)*100000000000 + *(temp_id+8)*10000000000 + *(temp_id+9)*1000000000 + *(temp_id+10)*100000000 + *(temp_id+11)*10000000 + *(temp_id+12)*1000000 + *(temp_id+13)*100000 + *(temp_id+14)*10000 + *(temp_id+15)*1000 + *(temp_id+16)*100 + *(temp_id+17)*10 + *(temp_id+18);
 			//temp_id[19] = temp_id[0]*1000000000000000000 + temp_id[1]*100000000000000000 + temp_id[2]*10000000000000000 + temp_id[3]*1000000000000000 + temp_id[4]*100000000000000 + temp_id[5]*10000000000000 + temp_id[6]*1000000000000 + temp_id[7]*100000000000 + temp_id[8]*10000000000 + temp_id[9]*1000000000 + temp_id[10]*100000000 + temp_id[11]*10000000 + temp_id[12]*1000000 + temp_id[13]*100000 + temp_id[14]*10000 + temp_id[15]*1000 + temp_id[16]*100 + temp_id[17]*10 + temp_id[18];

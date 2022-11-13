@@ -118,7 +118,7 @@ void ThreadM95Task(void const * argument)
 
 		if( ATE0() == AT_OK )
 		{
-			LED8_ON();
+			//LED8_ON();
 		}
 
 		osMutexRelease(UartMutexHandle);

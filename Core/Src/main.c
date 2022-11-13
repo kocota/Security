@@ -74,6 +74,8 @@ osThreadId ModbusTaskHandle;
 osThreadId MainTaskHandle;
 osThreadId ModbusPacketTaskHandle;
 osThreadId CallRingCenterTaskHandle;
+osThreadId LedTaskHandle;
+osThreadId ArmingTaskHandle;
 
 osThreadId CurrentID;
 osMutexId Fm25v02MutexHandle;
@@ -126,6 +128,10 @@ void ThreadModbusTask(void const * argument);
 void ThreadMainTask(void const * argument);
 void ThreadModbusPacketTask(void const * argument);
 void ThreadCallRingCenterTask(void const * argument);
+void ThreadLedTask(void const * argument);
+void ThreadArmingTask(void const * argument);
+
+
 
 /* USER CODE END PFP */
 
@@ -328,6 +334,14 @@ int main(void)
 
   osThreadDef(CallRingCenterTask, ThreadCallRingCenterTask, osPriorityNormal, 0, 128);
   CallRingCenterTaskHandle = osThreadCreate(osThread(CallRingCenterTask), NULL);
+
+  osThreadDef(LedTask, ThreadLedTask, osPriorityNormal, 0, 128);
+  LedTaskHandle = osThreadCreate(osThread(LedTask), NULL);
+
+  osThreadDef(ArmingTask, ThreadArmingTask, osPriorityNormal, 0, 128);
+  ArmingTaskHandle = osThreadCreate(osThread(ArmingTask), NULL);
+
+
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
@@ -409,10 +423,10 @@ static void MX_IWDG_Init(void)
   hiwdg.Instance = IWDG;
   hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
   hiwdg.Init.Reload = 4000;
-  //if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
-  //{
-    //Error_Handler();
-  //}
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN IWDG_Init 2 */
 
   /* USER CODE END IWDG_Init 2 */
@@ -621,6 +635,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -692,11 +707,25 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PF12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12;
+  /*Configure GPIO pin : PB2 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PF11 PF12 PF13 PF14
+                           PF15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14
+                          |GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PG0 PG1 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PD11 PD12 */
   GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
@@ -732,7 +761,7 @@ void StartDefaultTask(void const * argument)
 
   for(;;)
   {
-	//HAL_IWDG_Refresh(&hiwdg);
+	HAL_IWDG_Refresh(&hiwdg);
 	LED_VD3_TOGGLE();
     osDelay(1000);
   }
@@ -754,6 +783,7 @@ void Callback_AT_Timer(void const * argument)
 void Callback_Ring_Center_Timer(void const * argument)
 {
   /* USER CODE BEGIN Callback_Ring_Center_Timer */
+
 	/*
 	uint8_t timer_temp_reg;
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
