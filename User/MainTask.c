@@ -9,6 +9,7 @@
 extern osTimerId Ring_Center_TimerHandle;
 extern RTC_HandleTypeDef hrtc;
 //extern osMutexId UartMutexHandle;
+extern osThreadId LedTaskHandle;
 extern osMutexId Fm25v02MutexHandle;
 extern status_register_struct status_registers;
 extern control_register_struct control_registers;
@@ -19,6 +20,9 @@ RTC_TimeTypeDef set_time;
 RTC_DateTypeDef set_date;
 
 uint16_t status_registers_quantity = 58; // количество статусных регистров
+
+volatile uint8_t security_control_temp = 0;
+volatile uint8_t security_state_temp = 0;
 
 //uint8_t address1[10] = {0, 0, 0, 3, 4, 1, 0, 0, 0, 0};
 //uint8_t address1[10] = "SEND OK   ";
@@ -33,8 +37,12 @@ uint16_t status_registers_quantity = 58; // количество статусн�
 
 void ThreadMainTask(void const * argument)
 {
+	read_status_registers();
+	read_control_registers();
 
-	osDelay(2000);
+	osThreadResume(LedTaskHandle);
+
+	osDelay(1000);
 
 
 	for(;;)
@@ -81,112 +89,69 @@ void ThreadMainTask(void const * argument)
 
 		switch(control_registers.security_control_reg) // проверяем значение переменной включения охранной сигнализации
 		{
-			/*
+
 			case(DISABLE_FROM_SERVER):
+
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
 				fm25v02_write(SECURITY_STATUS_REG, DISABLED_BY_SERVER);
 				osMutexRelease(Fm25v02MutexHandle);
 
-	  			osMutexWait(UartMutexHandle, osWaitForever);
-	  			request_to_server();
-	  			osMutexRelease(UartMutexHandle);
-
-	  			BUZ_ON();
-	  			HAL_Delay(100);
-	  			BUZ_OFF();
-	  			for(uint8_t i=0; i<40; i++)
-	  			{
-	  				LED_OUT_TOGGLE();
-	  				HAL_Delay(200);
-	  			}
-	  			LED2_OFF();
-	  			LED_OUT_OFF();
-
-	  			BUZ_OFF();
-			break;
-			*/
-			case(ENABLE_FROM_SERVER): // если в регистр поступила команда включить из сервера
-				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
-				fm25v02_write(SECURITY_STATUS_REG, ENABLED_BY_SERVER);
-				osMutexRelease(Fm25v02MutexHandle);
-				/*
-	  			osMutexWait(UartMutexHandle, osWaitForever);
-	  			request_to_server();
-	  			osMutexRelease(UartMutexHandle);
-	  			*/
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
-				//osTimerStart(Ring_Center_TimerHandle, 1);
 
-	  			BUZ_ON();
-	  			HAL_Delay(100);
-	  			BUZ_OFF();
-	  			for(uint8_t i=0; i<8; i++)
-	  			{
-	  				LED_OUT_TOGGLE();
-	  				HAL_Delay(1000);
-	  			}
-	  			LED2_ON();
-	  			LED_OUT_ON();
 			break;
 
-			case(DISABLE_FROM_IBUTTON_OR_SERVER): // если поступила команда выключить из сервера или с таблетки
+			case(ENABLE_FROM_SERVER): // если в регистр поступила команда включить из сервера
+
+				security_control_temp = ENABLED_BY_SERVER;
+
+				osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				fm25v02_write(SECURITY_CONTROL_REG, ARMING_PROCESS);
+				osMutexRelease(Fm25v02MutexHandle);
+
+				//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				//fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
+				//fm25v02_write(SECURITY_STATUS_REG, ENABLED_BY_SERVER);
+				//osMutexRelease(Fm25v02MutexHandle);
+
+				//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				//fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				//osMutexRelease(Fm25v02MutexHandle);
+
+			break;
+
+			case(DISABLE_FROM_IBUTTON): // если поступила команда выключить из сервера или с таблетки
+
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
 				fm25v02_write(SECURITY_STATUS_REG, DISABLED_BY_IBUTTON);
 				osMutexRelease(Fm25v02MutexHandle);
-				/*
-	  			osMutexWait(UartMutexHandle, osWaitForever);
-	  			request_to_server();
-	  			osMutexRelease(UartMutexHandle);
-	  			*/
+
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
-				//osTimerStart(Ring_Center_TimerHandle, 1);
 
-	  			BUZ_ON();
-	  			HAL_Delay(100);
-	  			BUZ_OFF();
-	  			for(uint8_t i=0; i<40; i++)
-	  			{
-	  				LED_OUT_TOGGLE();
-	  				HAL_Delay(200);
-	  			}
-	  			LED2_OFF();
-	  			LED_OUT_OFF();
-
-	  			BUZ_OFF();
 			break;
 
 			case(ENABLE_FROM_IBUTTON): // если поступила команда включить с таблетки
-				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
-				fm25v02_write(SECURITY_STATUS_REG, ENABLED_BY_IBUTTON);
-				osMutexRelease(Fm25v02MutexHandle);
-				/*
-	  			osMutexWait(UartMutexHandle, osWaitForever);
-	  			request_to_server();
-	  			osMutexRelease(UartMutexHandle);
-	  			*/
-				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(GPRS_CALL_REG, CALL_ON);
-				osMutexRelease(Fm25v02MutexHandle);
-				//osTimerStart(Ring_Center_TimerHandle, 1);
 
-	  			BUZ_ON();
-	  			HAL_Delay(100);
-	  			BUZ_OFF();
-	  			for(uint8_t i=0; i<8; i++)
-	  			{
-	  				LED_OUT_TOGGLE();
-	  				HAL_Delay(1000);
-	  			}
-	  			LED2_ON();
-	  			LED_OUT_ON();
+				security_control_temp = ENABLED_BY_IBUTTON;
+
+				osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				fm25v02_write(SECURITY_STATUS_REG, ARMING_PROCESS);
+				osMutexRelease(Fm25v02MutexHandle);
+
+				//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				//fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
+				//fm25v02_write(SECURITY_STATUS_REG, ENABLED_BY_IBUTTON);
+				//osMutexRelease(Fm25v02MutexHandle);
+
+				//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				//fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				//osMutexRelease(Fm25v02MutexHandle);
+
 			break;
 		}
 
@@ -315,6 +280,13 @@ void ThreadMainTask(void const * argument)
 				osMutexRelease(Fm25v02MutexHandle);
 			break;
 		}
+
+		//switch(status_registers.security_status_reg)
+		//{
+			//case():
+
+			//break;
+		//}
 
 
 

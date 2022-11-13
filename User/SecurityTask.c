@@ -12,41 +12,22 @@ extern osThreadId IbuttonTaskHandle;
 extern osMutexId Fm25v02MutexHandle;
 //extern osMutexId UartMutexHandle;
 extern status_register_struct status_registers;
-//extern control_register_struct control_registers;
+extern control_register_struct control_registers;
 
-uint8_t button_state=0;
+uint8_t button_state1=0;
+uint8_t button_state2=0;
+uint8_t button_state3=0;
+uint8_t button_state4=0;
+uint8_t button_state5=0;
+uint8_t button_state6=0;
+uint8_t button_state7=0;
+uint8_t button_state8=0;
 
 void ThreadSecurityTask(void const * argument)
 {
 	uint8_t alarm_loop_reg_temp;
 
-	osMutexWait(Fm25v02MutexHandle, osWaitForever);
-	fm25v02_read(SECURITY_STATUS_REG, &security_state);//Читаем байт состояния охранной сигнализации из памяти
-	osMutexRelease(Fm25v02MutexHandle);
-	status_registers.security_status_reg = security_state;
 
-	if( (status_registers.security_status_reg == DISABLED_BY_IBUTTON) || (status_registers.security_status_reg == DISABLED_BY_SERVER) || (status_registers.security_status_reg == RESERVED_0) )//Проверяем состояние охранной сигнаизации и включаем или выключаем светодиоды
-	{
-		for(uint8_t i=0; i<40; i++)
-		{
-			LED_OUT_TOGGLE();
-			HAL_Delay(200);
-		}
-		LED2_OFF();
-		LED_OUT_OFF();
-	}
-	else if( (status_registers.security_status_reg == ENABLED_BY_IBUTTON) || (status_registers.security_status_reg == ENABLED_BY_SERVER) )
-	{
-		for(uint8_t i=0; i<8; i++)
-		{
-			LED_OUT_TOGGLE();
-			HAL_Delay(1000);
-		}
-		LED2_ON();
-		LED_OUT_ON();
-	}
-
-	osThreadResume(IbuttonTaskHandle);
 
 	for(;;)
 	{
@@ -54,16 +35,106 @@ void ThreadSecurityTask(void const * argument)
 		//(control_registers.control_loop_reg)&0x01
 		if( (status_registers.security_status_reg == ENABLED_BY_IBUTTON) || (status_registers.security_status_reg == ENABLED_BY_SERVER) ) // если режим охраны включен таблеткой или из центра
 		{
-			if( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_12) == GPIO_PIN_RESET) /*&& ( (control_registers.control_loop_reg)&0x04 != 0x00 )*/ )
+
+			//----Контроль шлейфа №1--------------------------------------------------------------------------------------------------------------------------------
+			if( (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == GPIO_PIN_RESET) && ( (control_registers.control_loop_reg&0x01) != 0x00 ) )
 			{
-				if(button_state<10)
+				if(button_state1<10)
 				{
-					button_state++;
-					if(button_state==10)
+					button_state1++;
+					if(button_state1==10)
 					{
 						BUZ_ON();
-						//LED8_ON();
 
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						alarm_loop_reg_temp = alarm_loop_reg_temp|0x01;
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						LED5_ON();
+						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						//osMutexRelease(Fm25v02MutexHandle);
+
+					}
+				}
+
+			}
+			else if ( (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == GPIO_PIN_SET) && ( (control_registers.control_loop_reg&0x01) != 0x00 ) )
+			{
+				if(button_state1>0)
+				{
+					button_state1 = 0;
+					LED5_OFF();
+
+				}
+
+			}
+			//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+			//----Контроль шлейфа №2--------------------------------------------------------------------------------------------------------------------------------
+			if( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_11) == GPIO_PIN_RESET) && ( (control_registers.control_loop_reg&0x02) != 0x00 ) )
+			{
+				if(button_state2<10)
+				{
+					button_state2++;
+					if(button_state2==10)
+					{
+						BUZ_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						alarm_loop_reg_temp = alarm_loop_reg_temp|0x02;
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						LED5_ON();
+						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						//osMutexRelease(Fm25v02MutexHandle);
+
+					}
+				}
+
+			}
+			else if ( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_11) == GPIO_PIN_SET) && ( (control_registers.control_loop_reg&0x02) != 0x00 ) )
+			{
+				if(button_state2>0)
+				{
+					button_state2 = 0;
+					LED5_OFF();
+
+				}
+
+			}
+			//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+			//----Контроль шлейфа №3--------------------------------------------------------------------------------------------------------------------------------
+			if( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_12) == GPIO_PIN_RESET) && ( (control_registers.control_loop_reg&0x04) != 0x00 ) )
+			{
+				if(button_state3<10)
+				{
+					button_state3++;
+					if(button_state3==10)
+					{
+						BUZ_ON();
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
@@ -74,54 +145,260 @@ void ThreadSecurityTask(void const * argument)
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
-						/*
-			  			osMutexWait(UartMutexHandle, osWaitForever);
-			  			request_to_server();
-			  			osMutexRelease(UartMutexHandle);
-			  			*/
+
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
-						//osTimerStart(Ring_Center_TimerHandle, 1);
-						/*
-						for(uint8_t i=0; i<40; i++)
-						{
-							LED_OUT_TOGGLE();
-							HAL_Delay(200);
-						}
-						LED2_OFF();
-						LED_OUT_OFF();
-						*/
+
+						LED5_ON();
+						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						//osMutexRelease(Fm25v02MutexHandle);
+
 					}
 				}
 
 			}
-			else if ( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_12) == GPIO_PIN_SET) /*&& ( (control_registers.control_loop_reg)&0x04 != 0x00 )*/ )
+			else if ( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_12) == GPIO_PIN_SET) && ( (control_registers.control_loop_reg&0x04) != 0x00 ) )
 			{
-				if(button_state>0)
+				if(button_state3>0)
 				{
-					button_state--;
-					if(button_state==0)
-					{
+					button_state3 = 0;
+					LED5_OFF();
 
-						/*
-						for(uint8_t i=0; i<8; i++)
-						{
-							LED_OUT_TOGGLE();
-							HAL_Delay(1000);
-						}
-						LED2_ON();
-						LED_OUT_ON();
-						*/
+				}
+
+			}
+			//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+			//----Контроль шлейфа №4--------------------------------------------------------------------------------------------------------------------------------
+			if( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_13) == GPIO_PIN_RESET) && ( (control_registers.control_loop_reg&0x08) != 0x00 ) )
+			{
+				if(button_state4<10)
+				{
+					button_state4++;
+					if(button_state4==10)
+					{
+						BUZ_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						alarm_loop_reg_temp = alarm_loop_reg_temp|0x08;
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						LED5_ON();
+						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						//osMutexRelease(Fm25v02MutexHandle);
+
 					}
 				}
 
 			}
+			else if ( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_13) == GPIO_PIN_SET) && ( (control_registers.control_loop_reg&0x08) != 0x00 ) )
+			{
+				if(button_state4>0)
+				{
+					button_state4 = 0;
+					LED5_OFF();
+
+				}
+
+			}
+			//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+			//----Контроль шлейфа №5--------------------------------------------------------------------------------------------------------------------------------
+			if( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_14) == GPIO_PIN_RESET) && ( (control_registers.control_loop_reg&0x10) != 0x00 ) )
+			{
+				if(button_state5<10)
+				{
+					button_state5++;
+					if(button_state5==10)
+					{
+						BUZ_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						alarm_loop_reg_temp = alarm_loop_reg_temp|0x10;
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						LED5_ON();
+						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						//osMutexRelease(Fm25v02MutexHandle);
+
+					}
+				}
+
+			}
+			else if ( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_14) == GPIO_PIN_SET) && ( (control_registers.control_loop_reg&0x10) != 0x00 ) )
+			{
+				if(button_state5>0)
+				{
+					button_state5 = 0;
+					LED5_OFF();
+
+				}
+
+			}
+			//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+			//----Контроль шлейфа №6--------------------------------------------------------------------------------------------------------------------------------
+			if( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_15) == GPIO_PIN_RESET) && ( (control_registers.control_loop_reg&0x20) != 0x00 ) )
+			{
+				if(button_state6<10)
+				{
+					button_state6++;
+					if(button_state6==10)
+					{
+						BUZ_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						alarm_loop_reg_temp = alarm_loop_reg_temp|0x20;
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						LED5_ON();
+						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						//osMutexRelease(Fm25v02MutexHandle);
+
+					}
+				}
+
+			}
+			else if ( (HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_15) == GPIO_PIN_SET) && ( (control_registers.control_loop_reg&0x20) != 0x00 ) )
+			{
+				if(button_state6>0)
+				{
+					button_state6 == 0;
+					LED5_OFF();
+
+				}
+
+			}
+			//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+			//----Контроль шлейфа №7--------------------------------------------------------------------------------------------------------------------------------
+			if( (HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_0) == GPIO_PIN_RESET) && ( (control_registers.control_loop_reg&0x40) != 0x00 ) )
+			{
+				if(button_state7<10)
+				{
+					button_state7++;
+					if(button_state7==10)
+					{
+						BUZ_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						alarm_loop_reg_temp = alarm_loop_reg_temp|0x40;
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						LED5_ON();
+						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						//osMutexRelease(Fm25v02MutexHandle);
+
+					}
+				}
+
+			}
+			else if ( (HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_0) == GPIO_PIN_SET) && ( (control_registers.control_loop_reg&0x40) != 0x00 ) )
+			{
+				if(button_state7>0)
+				{
+					button_state7 = 0;
+					LED5_OFF();
+
+				}
+
+			}
+			//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+			//----Контроль шлейфа №8--------------------------------------------------------------------------------------------------------------------------------
+			if( (HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_1) == GPIO_PIN_RESET) && ( (control_registers.control_loop_reg&0x80) != 0x00 ) )
+			{
+				if(button_state8<10)
+				{
+					button_state8++;
+					if(button_state8==10)
+					{
+						BUZ_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						alarm_loop_reg_temp = alarm_loop_reg_temp|0x80;
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						osMutexRelease(Fm25v02MutexHandle);
+
+						LED5_ON();
+						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						//osMutexRelease(Fm25v02MutexHandle);
+
+					}
+				}
+
+			}
+			else if ( (HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_1) == GPIO_PIN_SET) && ( (control_registers.control_loop_reg&0x80) != 0x00 ) )
+			{
+				if(button_state8>0)
+				{
+					button_state8 = 0;
+					LED5_OFF();
+
+				}
+
+			}
+			//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 
 		}
-
-
-
 
 		osDelay(10);
 
