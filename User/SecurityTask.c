@@ -60,10 +60,11 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
-						LED5_ON();
-						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
-						//osMutexRelease(Fm25v02MutexHandle);
+						//LED5_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
 
 					}
 				}
@@ -105,10 +106,11 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
-						LED5_ON();
-						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
-						//osMutexRelease(Fm25v02MutexHandle);
+						//LED5_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
 
 					}
 				}
@@ -150,10 +152,11 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
-						LED5_ON();
-						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
-						//osMutexRelease(Fm25v02MutexHandle);
+						//LED5_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
 
 					}
 				}
@@ -195,10 +198,11 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
-						LED5_ON();
-						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
-						//osMutexRelease(Fm25v02MutexHandle);
+						//LED5_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
 
 					}
 				}
@@ -240,10 +244,11 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
-						LED5_ON();
-						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
-						//osMutexRelease(Fm25v02MutexHandle);
+						//LED5_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
 
 					}
 				}
@@ -285,10 +290,11 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
-						LED5_ON();
-						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
-						//osMutexRelease(Fm25v02MutexHandle);
+						//LED5_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
 
 					}
 				}
@@ -330,10 +336,11 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
-						LED5_ON();
-						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
-						//osMutexRelease(Fm25v02MutexHandle);
+						//LED5_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
 
 					}
 				}
@@ -375,10 +382,11 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
-						LED5_ON();
-						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						//fm25v02_write(GPRS_CALL_REG, CALL_ON);
-						//osMutexRelease(Fm25v02MutexHandle);
+						//LED5_ON();
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
 
 					}
 				}

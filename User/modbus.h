@@ -119,6 +119,11 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 
 //--------------------------------------------------------
 
+//----описание регистров освещения------------------------
+
+#define LIGHT_CONTROL_REG  0x10C1
+//--------------------------------------------------------
+
 //----биты состояния байта SECURITY_STATUS_REG статус режима охраны------
 
 #define RESERVED_0          0x00 // зарезервированно
@@ -133,9 +138,9 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 //-----------------------------------------------------------------------
 
 //----биты security_control регистра-------------------------------------
-#define DISABLE_FROM_SERVER      0x00 // отключить из центра
+#define DISABLE_FROM_SERVER      0x02 // отключить из центра
 #define ENABLE_FROM_SERVER       0x01 // включить из центра
-#define DISABLE_FROM_IBUTTON     0x02 // отключить с таблетки
+#define DISABLE_FROM_IBUTTON     0x00 // отключить с таблетки
 #define ENABLE_FROM_IBUTTON      0x03 // ввключить с таблетки
 #define SECURITY_CONTROL_DEFAULT 0x04 // состояние покоя
 //-----------------------------------------------------------------------
@@ -265,6 +270,8 @@ typedef struct
 	uint16_t meter_id_high_reg;
 	uint16_t meter_id_low_reg;
 	uint16_t gprs_call_reg;
+
+	uint16_t light_control_reg;
 
 } control_register_struct;
 //------------------------------------------------------------------

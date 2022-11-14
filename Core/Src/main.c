@@ -76,6 +76,7 @@ osThreadId ModbusPacketTaskHandle;
 osThreadId CallRingCenterTaskHandle;
 osThreadId LedTaskHandle;
 osThreadId ArmingTaskHandle;
+osThreadId ReadRegistersTaskHandle;
 
 osThreadId CurrentID;
 osMutexId Fm25v02MutexHandle;
@@ -130,6 +131,7 @@ void ThreadModbusPacketTask(void const * argument);
 void ThreadCallRingCenterTask(void const * argument);
 void ThreadLedTask(void const * argument);
 void ThreadArmingTask(void const * argument);
+void ThreadReadRegistersTask(void const * argument);
 
 
 
@@ -340,6 +342,9 @@ int main(void)
 
   osThreadDef(ArmingTask, ThreadArmingTask, osPriorityNormal, 0, 128);
   ArmingTaskHandle = osThreadCreate(osThread(ArmingTask), NULL);
+
+  osThreadDef(ReadRegistersTask, ThreadReadRegistersTask, osPriorityNormal, 0, 128);
+  ReadRegistersTaskHandle = osThreadCreate(osThread(ReadRegistersTask), NULL);
 
 
   /* USER CODE END RTOS_THREADS */
@@ -660,7 +665,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOH, GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_15, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOH, GPIO_PIN_6, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOH, GPIO_PIN_5|GPIO_PIN_6, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3|GPIO_PIN_5, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
@@ -693,15 +701,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  /*Configure GPIO pins : PA0 PA3 PA5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_3|GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PH2 PH3 PH6 PH15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_6|GPIO_PIN_15;
+  /*Configure GPIO pins : PH2 PH3 PH5 PH6
+                           PH15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_5|GPIO_PIN_6
+                          |GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

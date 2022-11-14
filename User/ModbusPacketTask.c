@@ -100,7 +100,7 @@ void ThreadModbusPacketTask(void const * argument)
 					}
 					osMutexRelease(UartMutexHandle); // отдаем мьютекс для работы с модемом
 
-					if( modbus_address == CONTROL_LOOP_REG )
+					if( modbus_address == CONTROL_LOOP_REG)
 					{
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);

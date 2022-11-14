@@ -37,18 +37,18 @@ volatile uint8_t security_state_temp = 0;
 
 void ThreadMainTask(void const * argument)
 {
-	read_status_registers();
-	read_control_registers();
+	//read_status_registers();
+	//read_control_registers();
 
-	osThreadResume(LedTaskHandle);
+	//osThreadResume(LedTaskHandle);
 
 	osDelay(1000);
 
 
 	for(;;)
 	{
-		read_status_registers();
-		read_control_registers();
+		//read_status_registers();
+		//read_control_registers();
 
 		if( HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_0) == GPIO_PIN_SET ) // проверяем если есть наличие единицы на пине PFO микросхемы TPS3306-15
 		{
@@ -92,6 +92,8 @@ void ThreadMainTask(void const * argument)
 
 			case(DISABLE_FROM_SERVER):
 
+				BUZ_OFF();
+
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
 				fm25v02_write(SECURITY_STATUS_REG, DISABLED_BY_SERVER);
@@ -105,10 +107,14 @@ void ThreadMainTask(void const * argument)
 
 			case(ENABLE_FROM_SERVER): // если в регистр поступила команда включить из сервера
 
+				BUZ_OFF();
+
 				security_control_temp = ENABLED_BY_SERVER;
 
+				//security_state_temp = status_registers.security_status_reg;
+
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SECURITY_CONTROL_REG, ARMING_PROCESS);
+				fm25v02_write(SECURITY_STATUS_REG, ARMING_PROCESS);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				//osMutexWait(Fm25v02MutexHandle, osWaitForever);
@@ -138,6 +144,8 @@ void ThreadMainTask(void const * argument)
 			case(ENABLE_FROM_IBUTTON): // если поступила команда включить с таблетки
 
 				security_control_temp = ENABLED_BY_IBUTTON;
+
+				//security_state_temp = status_registers.security_status_reg;
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(SECURITY_STATUS_REG, ARMING_PROCESS);
@@ -212,6 +220,7 @@ void ThreadMainTask(void const * argument)
 
 			break;
 
+			/*
 			default: // Если в регистр поступила любое другое число отличное от команды установки времени
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
@@ -219,6 +228,7 @@ void ThreadMainTask(void const * argument)
 				osMutexRelease(Fm25v02MutexHandle);
 
 			break;
+			*/
 		}
 
 		switch(control_registers.lamp_control_reg) // удаленная перезагрузка контроллера
@@ -229,12 +239,13 @@ void ThreadMainTask(void const * argument)
 				osMutexRelease(Fm25v02MutexHandle);
 				NVIC_SystemReset();
 			break;
-
+			/*
 			default:
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(LAMP_CONTROL_REG, 0);
 				osMutexRelease(Fm25v02MutexHandle);
 			break;
+			*/
 		}
 
 		switch(control_registers.alarm_loop_clear_reg) // сбросить сработавшие шлейфы
@@ -251,12 +262,13 @@ void ThreadMainTask(void const * argument)
 				//osTimerStart(Ring_Center_TimerHandle, 1);
 
 			break;
-
+			/*
 			default:
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(ALARM_LOOP_CLEAR_REG, 0);
 				osMutexRelease(Fm25v02MutexHandle);
 			break;
+			*/
 		}
 
 		switch(control_registers.false_loop_clear_reg) // сбросить неисправные шлейфы
@@ -273,23 +285,51 @@ void ThreadMainTask(void const * argument)
 				//osTimerStart(Ring_Center_TimerHandle, 1);
 
 			break;
-
+			/*
 			default:
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(FALSE_LOOP_CLEAR_REG, 0);
 				osMutexRelease(Fm25v02MutexHandle);
 			break;
+			*/
 		}
 
-		//switch(status_registers.security_status_reg)
-		//{
-			//case():
+		/*
+		switch(status_registers.security_status_reg)
+		{
+			case(DOOR_OPEN_ALARM):
 
-			//break;
-		//}
+			break;
+		}
+		*/
 
+		if( (control_registers.light_control_reg&0x01) != 0x00 )
+		{
+			HAL_GPIO_WritePin(GPIOH, GPIO_PIN_5, GPIO_PIN_SET);
+		}
+		else if( (control_registers.light_control_reg&0x01) == 0x00 )
+		{
+			HAL_GPIO_WritePin(GPIOH, GPIO_PIN_5, GPIO_PIN_RESET);
+		}
 
+		if( (control_registers.light_control_reg&0x02) != 0x00 )
+		{
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
+		}
+		else if( (control_registers.light_control_reg&0x02) == 0x00 )
+		{
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
+		}
 
-		osDelay(1000);
+		if( (control_registers.light_control_reg&0x04) != 0x00 )
+		{
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+		}
+		else if( (control_registers.light_control_reg&0x04) == 0x00 )
+		{
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+		}
+
+		osDelay(1);
 	}
 }

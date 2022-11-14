@@ -405,8 +405,11 @@ void read_control_registers(void)
 	control_registers.meter_id_low_reg = status_reg_temp;
 	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
 	fm25v02_read(GPRS_CALL_REG, &status_reg_temp);
-	osMutexRelease(Fm25v02MutexHandle);
 	control_registers.gprs_call_reg = status_reg_temp;
+
+	fm25v02_read(LIGHT_CONTROL_REG, &status_reg_temp);
+	osMutexRelease(Fm25v02MutexHandle);
+	control_registers.light_control_reg = status_reg_temp;
 }
 //----------------------------------------------------------------
 

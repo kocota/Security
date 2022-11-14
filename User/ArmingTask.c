@@ -153,6 +153,17 @@ void ThreadArmingTask(void const * argument)
 					fm25v02_write(GPRS_CALL_REG, CALL_ON);
 					osMutexRelease(Fm25v02MutexHandle);
 				}
+				else if( control_loop_arming != control_registers.control_loop_reg)
+				{
+					osMutexWait(Fm25v02MutexHandle, osWaitForever);
+					fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
+					fm25v02_write(SECURITY_STATUS_REG, ARMING_ERROR);
+					osMutexRelease(Fm25v02MutexHandle);
+
+					osMutexWait(Fm25v02MutexHandle, osWaitForever);
+					fm25v02_write(GPRS_CALL_REG, CALL_ON);
+					osMutexRelease(Fm25v02MutexHandle);
+				}
 			}
 		}
 

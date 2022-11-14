@@ -50,7 +50,7 @@ void ThreadIbuttonTask(void const * argument)
 			{
 				if( (ibutton_search_rom(&IbuttonROM) == HAL_OK) && (IbuttonROM.IbuttonROM_High != 0) && (IbuttonROM.IbuttonROM_Low != 0) )
 				{
-
+					//LED6_TOGGLE();
 		  			BUZ_ON();
 		  			HAL_Delay(20);
 		  			BUZ_OFF();
@@ -75,6 +75,7 @@ void ThreadIbuttonTask(void const * argument)
 						//fm25v02_write(SECURITY_STATUS_REG, ENABLED_BY_IBUTTON);
 						//osMutexRelease(Fm25v02MutexHandle);
 
+
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(IBUTTON_COMPLETE_0_REG, ibutton_temp[0]);
 						fm25v02_write(IBUTTON_COMPLETE_1_REG, ibutton_temp[1]);
@@ -89,6 +90,7 @@ void ThreadIbuttonTask(void const * argument)
 						//security_control_temp = ENABLE_FROM_IBUTTON; // записываем команду в глобальную переменную управления охраной
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						//fm25v02_write(SECURITY_CONTROL_REG, ENABLE_FROM_SERVER); // запускаем процесс постановки на охрану
 						fm25v02_write(SECURITY_CONTROL_REG, ENABLE_FROM_IBUTTON); // запускаем процесс постановки на охрану
 						osMutexRelease(Fm25v02MutexHandle);
 
@@ -117,11 +119,12 @@ void ThreadIbuttonTask(void const * argument)
 
 			  		}
 					//else if( (security_state == ENABLED_BY_IBUTTON) || (security_state == ENABLED_BY_SERVER) )
-					else if( (status_registers.security_status_reg == ENABLED_BY_IBUTTON) || (status_registers.security_status_reg == ENABLED_BY_SERVER) || ( status_registers.security_status_reg == DOOR_OPEN_ALARM ) ) // если сигнализация включена, снимаем с охраны
+					else if( (status_registers.security_status_reg == ENABLED_BY_IBUTTON) || (status_registers.security_status_reg == ENABLED_BY_SERVER) || ( status_registers.security_status_reg == DOOR_OPEN_ALARM ) || ( status_registers.security_status_reg == ARMING_ERROR ) ) // если сигнализация включена, снимаем с охраны
 			  		{
 						//osMutexWait(Fm25v02MutexHandle, osWaitForever);
 			  			//fm25v02_write(SECURITY_STATUS_REG, DISABLED_BY_IBUTTON);
 			  			//osMutexRelease(Fm25v02MutexHandle);
+
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(IBUTTON_COMPLETE_0_REG, ibutton_temp[0]);
@@ -165,18 +168,19 @@ void ThreadIbuttonTask(void const * argument)
 
 			  		}
 
+					/*
 					else if( status_registers.security_status_reg == ARMING_ERROR )
 					{
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-			  			fm25v02_write(SECURITY_STATUS_REG, security_state_temp);
+			  			fm25v02_write(SECURITY_STATUS_REG, DISABLED_BY_IBUTTON);
 			  			osMutexRelease(Fm25v02MutexHandle);
 
-			  			status_registers.security_status_reg = security_state_temp;
+			  			status_registers.security_status_reg = DISABLED_BY_IBUTTON;
 
 			  			HAL_Delay(10000);
 
 					}
-
+					*/
 
 
 				}
