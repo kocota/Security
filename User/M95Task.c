@@ -26,8 +26,8 @@ volatile uint8_t port_low_reg = 0;  // младший байт номера по
 volatile uint16_t port = 0;   // номер порта сервера
 
 uint8_t state;
-uint8_t Version_H = 1;  // версия прошивки, старший байт
-uint8_t Version_L = 12; // версия прошивки, младший байт
+uint8_t Version_H = 0;  // версия прошивки, старший байт
+uint8_t Version_L = 14; // версия прошивки, младший байт
 uint8_t id2[10]; // номер CCID симкарты
 uint64_t id1[20];
 
