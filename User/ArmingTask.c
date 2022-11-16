@@ -3,6 +3,7 @@
 #include "modbus.h"
 #include "fm25v02.h"
 
+extern osThreadId EventWriteTaskHandle;
 extern osMutexId Fm25v02MutexHandle;
 extern control_register_struct control_registers;
 extern status_register_struct status_registers;
@@ -152,6 +153,8 @@ void ThreadArmingTask(void const * argument)
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
 					fm25v02_write(GPRS_CALL_REG, CALL_ON);
 					osMutexRelease(Fm25v02MutexHandle);
+
+					osThreadResume(EventWriteTaskHandle);
 				}
 				else if( control_loop_arming != control_registers.control_loop_reg)
 				{
@@ -163,6 +166,8 @@ void ThreadArmingTask(void const * argument)
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
 					fm25v02_write(GPRS_CALL_REG, CALL_ON);
 					osMutexRelease(Fm25v02MutexHandle);
+
+					osThreadResume(EventWriteTaskHandle);
 				}
 			}
 		}

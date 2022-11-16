@@ -77,6 +77,7 @@ osThreadId CallRingCenterTaskHandle;
 osThreadId LedTaskHandle;
 osThreadId ArmingTaskHandle;
 osThreadId ReadRegistersTaskHandle;
+osThreadId EventWriteTaskHandle;
 
 osThreadId CurrentID;
 osMutexId Fm25v02MutexHandle;
@@ -132,6 +133,7 @@ void ThreadCallRingCenterTask(void const * argument);
 void ThreadLedTask(void const * argument);
 void ThreadArmingTask(void const * argument);
 void ThreadReadRegistersTask(void const * argument);
+void ThreadEventWriteTask(void const * argument);
 
 
 
@@ -346,6 +348,9 @@ int main(void)
   osThreadDef(ReadRegistersTask, ThreadReadRegistersTask, osPriorityNormal, 0, 128);
   ReadRegistersTaskHandle = osThreadCreate(osThread(ReadRegistersTask), NULL);
 
+  osThreadDef(EventWriteTask, ThreadEventWriteTask, osPriorityNormal, 0, 128);
+  EventWriteTaskHandle = osThreadCreate(osThread(EventWriteTask), NULL);
+
 
   /* USER CODE END RTOS_THREADS */
 
@@ -428,10 +433,10 @@ static void MX_IWDG_Init(void)
   hiwdg.Instance = IWDG;
   hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
   hiwdg.Init.Reload = 4000;
-  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  //if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  //{
+    //Error_Handler();
+  //}
   /* USER CODE BEGIN IWDG_Init 2 */
 
   /* USER CODE END IWDG_Init 2 */
@@ -476,6 +481,7 @@ static void MX_RTC_Init(void)
 
   /** Initialize RTC and set the Time and Date
   */
+  /*
   sTime.Hours = 0x17;
   sTime.Minutes = 0x47;
   sTime.Seconds = 0x0;
@@ -494,6 +500,7 @@ static void MX_RTC_Init(void)
   {
     Error_Handler();
   }
+  */
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
@@ -771,7 +778,7 @@ void StartDefaultTask(void const * argument)
 
   for(;;)
   {
-	HAL_IWDG_Refresh(&hiwdg);
+	//HAL_IWDG_Refresh(&hiwdg);
 	LED_VD3_TOGGLE();
     osDelay(1000);
   }
