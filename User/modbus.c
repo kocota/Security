@@ -4,6 +4,7 @@
 
 
 extern osMutexId Fm25v02MutexHandle;
+extern uint8_t Version_H;
 
 status_register_struct status_registers;
 control_register_struct control_registers;
@@ -15,7 +16,7 @@ void read_status_registers(void)
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
 	fm25v02_read(VERSION_REG, &status_reg_temp);
 	//osMutexRelease(Fm25v02MutexHandle);
-	status_registers.version_reg = status_reg_temp;
+	status_registers.version_reg = status_reg_temp|(((uint16_t)Version_H)<<8); // костыль для чтения регистра версии прошивки
 	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
 	fm25v02_read(SECURITY_STATUS_REG, &status_reg_temp);
 	//osMutexRelease(Fm25v02MutexHandle);

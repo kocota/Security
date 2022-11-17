@@ -10,6 +10,7 @@ extern osTimerId Ring_Center_TimerHandle;
 extern uint8_t security_state;
 extern osThreadId IbuttonTaskHandle;
 extern osMutexId Fm25v02MutexHandle;
+extern osThreadId EventWriteTaskHandle;
 //extern osMutexId UartMutexHandle;
 extern status_register_struct status_registers;
 extern control_register_struct control_registers;
@@ -60,6 +61,13 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						status_registers.system_status_reg = ALARM_STATE;
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osThreadResume(EventWriteTaskHandle);
+
 						//LED5_ON();
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
@@ -105,6 +113,13 @@ void ThreadSecurityTask(void const * argument)
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						status_registers.system_status_reg = ALARM_STATE;
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osThreadResume(EventWriteTaskHandle);
 
 						//LED5_ON();
 
@@ -152,6 +167,13 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						status_registers.system_status_reg = ALARM_STATE;
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osThreadResume(EventWriteTaskHandle);
+
 						//LED5_ON();
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
@@ -197,6 +219,13 @@ void ThreadSecurityTask(void const * argument)
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						status_registers.system_status_reg = ALARM_STATE;
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osThreadResume(EventWriteTaskHandle);
 
 						//LED5_ON();
 
@@ -244,6 +273,13 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						status_registers.system_status_reg = ALARM_STATE;
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osThreadResume(EventWriteTaskHandle);
+
 						//LED5_ON();
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
@@ -289,6 +325,13 @@ void ThreadSecurityTask(void const * argument)
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						status_registers.system_status_reg = ALARM_STATE;
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osThreadResume(EventWriteTaskHandle);
 
 						//LED5_ON();
 
@@ -336,6 +379,13 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						status_registers.system_status_reg = ALARM_STATE;
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osThreadResume(EventWriteTaskHandle);
+
 						//LED5_ON();
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
@@ -381,6 +431,13 @@ void ThreadSecurityTask(void const * argument)
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
+
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						status_registers.system_status_reg = ALARM_STATE;
+						osMutexRelease(Fm25v02MutexHandle);
+
+						osThreadResume(EventWriteTaskHandle);
 
 						//LED5_ON();
 

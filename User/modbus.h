@@ -155,6 +155,21 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 #define CALL_ON   0x01
 //-----------------------------------------------------------------------
 
+//----биты system_status регистра------------------------------------------
+#define POWER_ON     0x01
+#define POWER_OFF    0x02
+#define MODEM_RESET  0x03
+#define MCU_RESET    0x04
+#define SESSION_QUARD_TIME 0x05
+#define TURN_ON_STATE_ALARM 0x06
+#define TURN_OFF_STATE_ALARM 0x07
+#define TURN_ON_ALARM_ERROR 0x08
+#define ERROR_LOOP 0x09
+#define ALARM_STATE 0x0A
+#define LOST_GSM_CONNECTION 0x0B
+#define RESTORED_GSM_CONNECTION 0x0C
+//-----------------------------------------------------------------------
+
 
 
 //----структура переменной статусных регистров---------------------

@@ -68,6 +68,11 @@ void ThreadMainTask(void const * argument)
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
 
+				osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				fm25v02_write(SYSTEM_STATUS_REG, POWER_ON);
+				status_registers.system_status_reg = POWER_ON;
+				osMutexRelease(Fm25v02MutexHandle);
+
 				osThreadResume(EventWriteTaskHandle);
 				//osTimerStart(Ring_Center_TimerHandle, 1);
 			}
@@ -87,6 +92,11 @@ void ThreadMainTask(void const * argument)
 	  			*/
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				osMutexRelease(Fm25v02MutexHandle);
+
+				osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				fm25v02_write(SYSTEM_STATUS_REG, POWER_OFF);
+				status_registers.system_status_reg = POWER_OFF;
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osThreadResume(EventWriteTaskHandle);
@@ -109,6 +119,11 @@ void ThreadMainTask(void const * argument)
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				osMutexRelease(Fm25v02MutexHandle);
+
+				osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				fm25v02_write(SYSTEM_STATUS_REG, TURN_OFF_STATE_ALARM);
+				status_registers.system_status_reg = TURN_OFF_STATE_ALARM;
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osThreadResume(EventWriteTaskHandle);
@@ -150,6 +165,11 @@ void ThreadMainTask(void const * argument)
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				osMutexRelease(Fm25v02MutexHandle);
+
+				osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				fm25v02_write(SYSTEM_STATUS_REG, TURN_OFF_STATE_ALARM);
+				status_registers.system_status_reg = TURN_OFF_STATE_ALARM;
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osThreadResume(EventWriteTaskHandle);

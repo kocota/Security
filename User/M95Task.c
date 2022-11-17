@@ -46,11 +46,9 @@ void ThreadM95Task(void const * argument)
 	osSemaphoreWait(ReceiveStateHandle, osWaitForever); // обнуляем семафор, при создании семафора его значение равно 1
 	//HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1); // включаем прием от модема
 
-	//BUZ_ON();
-	//HAL_Delay(300);
-	//BUZ_OFF();
 
 
+	/*
 	HAL_Delay(2000); // ждем
 	state = AT(); // проверяем связь с модемом
 
@@ -60,8 +58,27 @@ void ThreadM95Task(void const * argument)
 		HAL_Delay(7000);
 	}
 
-
 	state = AT(); // проверяем связь с модемом
+	*/
+
+	if(AT()==AT_ERROR)
+	{
+		m95_power_on();
+		while(AT()==AT_ERROR)
+		{
+
+		}
+	}
+	else if(AT()==AT_OK)
+	{
+		m95_power_off();
+		HAL_Delay(12000);
+		m95_power_on();
+		while(AT()==AT_ERROR)
+		{
+
+		}
+	}
 
 
 	//----Обнуление регистров IP адреса и порта сервера, обнуление ID устройства------

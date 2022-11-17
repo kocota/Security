@@ -16,6 +16,8 @@ extern uint8_t modbus_packet_number1;
 
 extern uint8_t Version_H;
 
+//uint8_t buf_out[256];
+//uint8_t buf_out1[256];
 uint8_t buf_out[256];
 uint8_t buf_out1[256];
 uint8_t level;
@@ -98,6 +100,9 @@ void ThreadModbusPacketTask(void const * argument)
 							LED7_ON();
 						}
 						osMutexRelease(UartMutexHandle);
+
+						osTimerStop(Ring_Center_TimerHandle);
+						osTimerStart(Ring_Center_TimerHandle, 60000);
 					}
 
 					else

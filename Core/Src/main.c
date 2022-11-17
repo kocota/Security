@@ -239,6 +239,14 @@ int main(void)
   HAL_Delay(50);
   BUZ_OFF();
 
+  if( ((RCC->BDCR)&0x02) != 0 ) // Проверяем, запустился ли часовой кварц, если запустился включаем светодиод
+  {
+	  LED_VD4_ON();
+  }
+  else
+  {
+	  LED_VD4_OFF();
+  }
 
   //modem_tx_data[0]='A';
   //modem_tx_data[1]='T';
@@ -433,10 +441,10 @@ static void MX_IWDG_Init(void)
   hiwdg.Instance = IWDG;
   hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
   hiwdg.Init.Reload = 4000;
-  //if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
-  //{
-    //Error_Handler();
-  //}
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN IWDG_Init 2 */
 
   /* USER CODE END IWDG_Init 2 */
@@ -778,7 +786,7 @@ void StartDefaultTask(void const * argument)
 
   for(;;)
   {
-	//HAL_IWDG_Refresh(&hiwdg);
+	HAL_IWDG_Refresh(&hiwdg);
 	LED_VD3_TOGGLE();
     osDelay(1000);
   }
@@ -801,6 +809,7 @@ void Callback_Ring_Center_Timer(void const * argument)
 {
   /* USER CODE BEGIN Callback_Ring_Center_Timer */
 
+	NVIC_SystemReset();
 	/*
 	uint8_t timer_temp_reg;
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);

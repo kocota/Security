@@ -154,6 +154,11 @@ void ThreadArmingTask(void const * argument)
 					fm25v02_write(GPRS_CALL_REG, CALL_ON);
 					osMutexRelease(Fm25v02MutexHandle);
 
+					osMutexWait(Fm25v02MutexHandle, osWaitForever);
+					fm25v02_write(SYSTEM_STATUS_REG, TURN_ON_STATE_ALARM);
+					status_registers.system_status_reg = TURN_ON_STATE_ALARM;
+					osMutexRelease(Fm25v02MutexHandle);
+
 					osThreadResume(EventWriteTaskHandle);
 				}
 				else if( control_loop_arming != control_registers.control_loop_reg)
@@ -165,6 +170,11 @@ void ThreadArmingTask(void const * argument)
 
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
 					fm25v02_write(GPRS_CALL_REG, CALL_ON);
+					osMutexRelease(Fm25v02MutexHandle);
+
+					osMutexWait(Fm25v02MutexHandle, osWaitForever);
+					fm25v02_write(SYSTEM_STATUS_REG, TURN_ON_ALARM_ERROR);
+					status_registers.system_status_reg = TURN_ON_ALARM_ERROR;
 					osMutexRelease(Fm25v02MutexHandle);
 
 					osThreadResume(EventWriteTaskHandle);
