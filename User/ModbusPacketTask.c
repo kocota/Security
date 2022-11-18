@@ -102,7 +102,7 @@ void ThreadModbusPacketTask(void const * argument)
 						osMutexRelease(UartMutexHandle);
 
 						osTimerStop(Ring_Center_TimerHandle);
-						osTimerStart(Ring_Center_TimerHandle, 60000);
+						osTimerStart(Ring_Center_TimerHandle, 300000);
 					}
 
 					else
@@ -173,14 +173,14 @@ void ThreadModbusPacketTask(void const * argument)
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
-						osTimerStart(Ring_Center_TimerHandle, 1);
+						//osTimerStart(Ring_Center_TimerHandle, 1);
 					}
 					if( modbus_address == 0x2710)
 					{
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
-						osTimerStart(Ring_Center_TimerHandle, 1);
+						//osTimerStart(Ring_Center_TimerHandle, 1);
 					}
 
 				}

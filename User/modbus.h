@@ -105,7 +105,7 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 
 #define ID_HIGH_REG                      0x10AB // (4267) ID устройства, старший байт
 #define ID_LOW_REG                       0x10AC // (4268) ID устройства, младший байт
-#define LAMP_CONTROL_REG                 0x10AD // (4269) регистр управления лампочной
+#define RESET_CONTROL_REG                 0x10AD // (4269) регистр управления лампочной
 #define METER_POLLING_REG                0x10AE // (4270) включение опроса счётчика ( 1 - счётчик опрашивается 0 - нет )
 #define IP_1_REG                         0x10AF // (4271) IP сервера
 #define IP_2_REG                         0x10B0 // (4272) IP сервера
@@ -116,6 +116,8 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 #define METER_ID_HIGH_REG                0x10B5 // (4277) номер прибора учета, старший байт
 #define METER_ID_LOW_REG                 0x10B6 // (4278) номер прибора учета, младший байт
 #define GPRS_CALL_REG                    0x10B7 // (4279) флаг что устройство по GPRS звонит в центр ( 1 - звонит, сбросить в 0 )
+
+#define MUTE_REG                         0x10B9 // (4281) регистр управления отключением звука при тревоге открытия двери (1 - звук отключен, 0 - звук включен)
 
 //--------------------------------------------------------
 
@@ -168,6 +170,11 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 #define ALARM_STATE 0x0A
 #define LOST_GSM_CONNECTION 0x0B
 #define RESTORED_GSM_CONNECTION 0x0C
+//-----------------------------------------------------------------------
+
+//----биты mute_reg регистра------------------------------------------
+#define MUTE_OFF  0x00
+#define MUTE_ON   0x01
 //-----------------------------------------------------------------------
 
 
@@ -274,7 +281,7 @@ typedef struct
 
 	uint16_t id_high_reg;
 	uint16_t id_low_reg;
-	uint16_t lamp_control_reg;
+	uint16_t reset_control_reg;
 	uint16_t meter_polling_reg;
 	uint16_t ip1_reg;
 	uint16_t ip2_reg;
@@ -286,7 +293,9 @@ typedef struct
 	uint16_t meter_id_low_reg;
 	uint16_t gprs_call_reg;
 
-	uint16_t light_control_reg;
+	uint16_t mute_reg; // переменная управления отключением звука при тревоге открытия двери
+
+	uint16_t light_control_reg; // переменная управления освещением
 
 } control_register_struct;
 //------------------------------------------------------------------

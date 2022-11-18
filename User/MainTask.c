@@ -268,11 +268,11 @@ void ThreadMainTask(void const * argument)
 			*/
 		}
 
-		switch(control_registers.lamp_control_reg) // удаленная перезагрузка контроллера
+		switch(control_registers.reset_control_reg) // удаленная перезагрузка контроллера
 		{
 			case(1):
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(LAMP_CONTROL_REG, 0);
+				fm25v02_write(RESET_CONTROL_REG, 0);
 				osMutexRelease(Fm25v02MutexHandle);
 				NVIC_SystemReset();
 			break;

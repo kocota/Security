@@ -365,9 +365,9 @@ void read_control_registers(void)
 	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.id_low_reg = status_reg_temp;
 	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-	fm25v02_read(LAMP_CONTROL_REG, &status_reg_temp);
+	fm25v02_read(RESET_CONTROL_REG, &status_reg_temp);
 	//osMutexRelease(Fm25v02MutexHandle);
-	control_registers.lamp_control_reg = status_reg_temp;
+	control_registers.reset_control_reg = status_reg_temp;
 	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
 	fm25v02_read(METER_POLLING_REG, &status_reg_temp);
 	//osMutexRelease(Fm25v02MutexHandle);
@@ -407,10 +407,13 @@ void read_control_registers(void)
 	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
 	fm25v02_read(GPRS_CALL_REG, &status_reg_temp);
 	control_registers.gprs_call_reg = status_reg_temp;
-
+	//osMutexRelease(Fm25v02MutexHandle);
 	fm25v02_read(LIGHT_CONTROL_REG, &status_reg_temp);
-	osMutexRelease(Fm25v02MutexHandle);
 	control_registers.light_control_reg = status_reg_temp;
+	//osMutexRelease(Fm25v02MutexHandle);
+	fm25v02_read(MUTE_REG, &status_reg_temp);
+	osMutexRelease(Fm25v02MutexHandle);
+	control_registers.mute_reg = status_reg_temp;
 }
 //----------------------------------------------------------------
 
