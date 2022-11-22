@@ -351,33 +351,43 @@ void ThreadMainTask(void const * argument)
 			break;
 		}
 
+		if(control_registers.lighting_switching_reg == LIGHTING_ON) // если функция освещения включена
+		{
+			switch(control_registers.light_control_reg&0x01) // проверяем бит фазы А
+			{
+				case(PHASE_A_SWITCH_OFF): // если выставлен бит на выключение фазы А
+					PHASE_A_OFF(); // выключаем фазу А
+				break;
+				case(PHASE_A_SWITCH_ON): // если выставлен бит на включение фазы А
+					PHASE_A_ON(); // включаем фазу А
+				break;
+			}
+			switch(control_registers.light_control_reg&0x02) // проверяем бит фазы В
+			{
+				case(PHASE_B_SWITCH_OFF): // если выставлен бит на выключение фазы В
+					PHASE_B_OFF(); // выключаем фазу В
+				break;
+				case(PHASE_B_SWITCH_ON): //если выставлен бит на включение фазы В
+					PHASE_B_ON(); // включаем фазу В
+				break;
+			}
+			switch(control_registers.light_control_reg&0x04) // проверяяем бит фазы С
+			{
+				case(PHASE_C_SWITCH_OFF): // если выставлен бит на выключение фазы С
+					PHASE_C_OFF(); // выключаем фазу С
+				break;
+				case(PHASE_C_SWITCH_ON): // если выставлен бит на включение фазы С
+					PHASE_C_ON(); // включаем фазу С
+				break;
+			}
+		}
+		else if(control_registers.lighting_switching_reg == LIGHTING_OFF) // если функция освещения выключена
+		{
+			PHASE_A_OFF(); // отключаем фазу А
+			PHASE_B_OFF(); // отключаем фазу В
+			PHASE_C_OFF(); // отключаем фазу С
+		}
 
-		if( (control_registers.light_control_reg&0x01) != 0x00 )
-		{
-			HAL_GPIO_WritePin(GPIOH, GPIO_PIN_5, GPIO_PIN_SET);
-		}
-		else if( (control_registers.light_control_reg&0x01) == 0x00 )
-		{
-			HAL_GPIO_WritePin(GPIOH, GPIO_PIN_5, GPIO_PIN_RESET);
-		}
-
-		if( (control_registers.light_control_reg&0x02) != 0x00 )
-		{
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
-		}
-		else if( (control_registers.light_control_reg&0x02) == 0x00 )
-		{
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
-		}
-
-		if( (control_registers.light_control_reg&0x04) != 0x00 )
-		{
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-		}
-		else if( (control_registers.light_control_reg&0x04) == 0x00 )
-		{
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-		}
 
 		osDelay(1);
 	}

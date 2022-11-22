@@ -196,7 +196,38 @@ void LED8_TOGGLE(void) // переключение светодиода LED8
 
 //-------------------------------------------------------------------------------------------------------
 
+//---функции включения и отключения фаз-----------------
+void PHASE_A_ON(void)
+{
+	HAL_GPIO_WritePin(GPIOH, GPIO_PIN_5, GPIO_PIN_SET);
+}
 
+void PHASE_A_OFF(void)
+{
+	HAL_GPIO_WritePin(GPIOH, GPIO_PIN_5, GPIO_PIN_RESET);
+}
+
+void PHASE_B_ON(void)
+{
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET);
+}
+
+void PHASE_B_OFF(void)
+{
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
+}
+
+void PHASE_C_ON(void)
+{
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+}
+
+void PHASE_C_OFF(void)
+{
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+}
+
+//------------------------------------------------------
 
 
 

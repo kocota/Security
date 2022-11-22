@@ -48,6 +48,15 @@ void LED7_TOGGLE(void);
 void LED8_TOGGLE(void);
 //-------------------------------------------------------------------------------------------------------------
 
+//---прототипы функций включения и отключения фаз-------------------
+void PHASE_A_ON(void);
+void PHASE_A_OFF(void);
+void PHASE_B_ON(void);
+void PHASE_B_OFF(void);
+void PHASE_C_ON(void);
+void PHASE_C_OFF(void);
+//------------------------------------------------------------------
+
 
 
 #endif

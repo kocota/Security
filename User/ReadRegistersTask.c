@@ -3,6 +3,7 @@
 #include "modbus.h"
 #include "fm25v02.h"
 
+extern ADC_HandleTypeDef hadc1;
 extern osThreadId LedTaskHandle;
 extern osMutexId Fm25v02MutexHandle;
 extern status_register_struct status_registers;
@@ -19,6 +20,7 @@ void ThreadReadRegistersTask(void const * argument)
 
 	for(;;)
 	{
+
 		read_status_registers();
 		read_control_registers();
 

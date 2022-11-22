@@ -158,7 +158,7 @@ void ThreadM95Task(void const * argument)
 		{
 			case IP_INITIAL:
 
-				LED3_OFF();
+				LED1_OFF();
 				if( AT_COPS() == AT_OK )
 				{
 
@@ -180,7 +180,7 @@ void ThreadM95Task(void const * argument)
 
 			case IP_START:
 
-				LED3_OFF();
+				LED1_OFF();
 				if(AT_QIACT()!=AT_OK)
 				{
 
@@ -190,7 +190,7 @@ void ThreadM95Task(void const * argument)
 
 			case IP_IND:
 
-				LED3_OFF();
+				LED1_OFF();
 				if(AT_QIDEACT()!=AT_OK)
 				{
 
@@ -200,24 +200,24 @@ void ThreadM95Task(void const * argument)
 
 			case IP_GPRSACT:
 
-				LED3_OFF();
+				LED1_OFF();
 				if( AT_QIOPEN("TCP", ip1, ip2, ip3, ip4, port) == AT_OK )
 				{
-					LED3_ON();
+					//LED1_ON();
 				}
 				else
 				{
-					LED3_OFF();
+					LED1_OFF();
 				}
 
 			break;
 
 			case IP_CLOSE:
 				osThreadSuspend(CallRingCenterTaskHandle);
-				LED3_OFF();
+				LED1_OFF();
 				if( AT_QIOPEN("TCP", ip1 , ip2, ip3, ip4, port) == AT_OK )
 				{
-					LED3_ON();
+					//LED1_ON();
 				}
 				else
 				{
@@ -228,7 +228,7 @@ void ThreadM95Task(void const * argument)
 
 			case PDP_DEACT:
 
-				LED3_OFF();
+				LED1_OFF();
 				if(AT_QIACT()!=AT_OK)
 				{
 
@@ -238,7 +238,7 @@ void ThreadM95Task(void const * argument)
 			case CONNECT_OK: // Если соединение установлено
 
 				osThreadResume(CallRingCenterTaskHandle); // пробуждаем процесс запроса к серверу
-				LED3_ON();
+				LED1_ON();
 				if( AT_COPS() == AT_OK )
 				{
 

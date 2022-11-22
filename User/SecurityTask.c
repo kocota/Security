@@ -32,6 +32,64 @@ void ThreadSecurityTask(void const * argument)
 
 	for(;;)
 	{
+		if(control_registers.lighting_switching_reg == LIGHTING_ON) // если функция освещения включена
+		{
+			if( HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == GPIO_PIN_RESET ) // если нет наличия фазы А1
+			{
+				LED3_OFF();
+			}
+			else if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == GPIO_PIN_SET) // если есть наличие фазы А1
+			{
+				LED3_ON();
+			}
+
+			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_11) == GPIO_PIN_RESET ) // если нет наличия фазы А2
+			{
+				LED6_OFF();
+			}
+			else if(HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_11) == GPIO_PIN_SET) // если есть наличие фазы А2
+			{
+				LED6_ON();
+			}
+
+			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_12) == GPIO_PIN_RESET ) // если нет наличия фазы В1
+			{
+				LED4_OFF();
+			}
+			else if(HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_12) == GPIO_PIN_SET) // если есть наличие фазы В1
+			{
+				LED4_ON();
+			}
+
+			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_13) == GPIO_PIN_RESET ) // если нет наличия фазы В2
+			{
+				LED7_OFF();
+			}
+			else if(HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_13) == GPIO_PIN_SET) // если есть наличие фазы В2
+			{
+				LED7_ON();
+			}
+
+			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_14) == GPIO_PIN_RESET ) // если нет наличия фазы С1
+			{
+				LED5_OFF();
+			}
+			else if(HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_14) == GPIO_PIN_SET) // если есть наличие фазы С1
+			{
+				LED5_ON();
+			}
+
+			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_15) == GPIO_PIN_RESET ) // если нет наличия фазы С2
+			{
+				LED8_OFF();
+			}
+			else if(HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_15) == GPIO_PIN_SET) // если нет наличия фазы С2
+			{
+				LED8_ON();
+			}
+
+		}
+
 
 		//(control_registers.control_loop_reg)&0x01
 		if( (status_registers.security_status_reg == ENABLED_BY_IBUTTON) || (status_registers.security_status_reg == ENABLED_BY_SERVER) ) // если режим охраны включен таблеткой или из центра
