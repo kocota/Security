@@ -25,25 +25,8 @@ uint8_t modbus_packet_number1 = 0;
 
 void ThreadModbusTask(void const * argument)
 {
-	//uint8_t id1[20]; // номер CCID симкарты
-
 	uint8_t i=0;
 	uint8_t i_max;
-	//uint16_t modbus_size;
-	//uint16_t modbus_address;
-	//uint8_t modbus_packet_number;
-	//uint16_t modbus_data;
-
-	//uint8_t data[10];
-	//data[0]=(uint8_t)((ID_H>>8)&0xFF); // стартовый номер устройства, старший байт 1
-	//data[1]=(uint8_t)(ID_H&0xFF); // стартовый номер устройства, старший байт 2
-	//data[2]=(uint8_t)((ID_L>>8)&0xFF); // стартовый номер устройства, младший байт 1
-	//data[3]=(uint8_t)(ID_L&0xFF); // стартовый номер устройства, младший байт 2
-	//data[4]=Version_H; // версия прошивки, старший байт
-	//data[5]=Version_L; // версия прошивки, младший байт
-
-	//fm25v02_fast_write(VERSION_REG, &data[0], 4);// записываем в память ID устройства
-	//fm25v02_fast_write(0x1000*2, &data[4], 2);// записываем в память номер версии прошивки
 
 
 	for(;;)
@@ -155,17 +138,9 @@ void ThreadModbusTask(void const * argument)
 					{
 						if( (i==6) && (modbus_buffer[modbus_packet_number][1] == 0x10) )
 						{
-							//if( modbus_buffer[modbus_packet_number][i-1] == (ModbusEvent.value.v)/2 )
-							//{
 								modbus_buffer[modbus_packet_number][i] = ModbusEvent.value.v;
 								i_max = 9 + (uint8_t)ModbusEvent.value.v;
 								i++;
-							//}
-							//else
-							//{
-								//i = 0;
-								//i_max = 0;
-							//}
 						}
 						else
 						{
@@ -215,7 +190,7 @@ void ThreadModbusTask(void const * argument)
 					{
 						modbus_packet_number = 0;
 					}
-					//osThreadSuspend(thread_id)
+
 					osSemaphoreRelease(ModbusPacketReceiveHandle);
 				}
 

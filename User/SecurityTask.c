@@ -11,7 +11,7 @@ extern uint8_t security_state;
 extern osThreadId IbuttonTaskHandle;
 extern osMutexId Fm25v02MutexHandle;
 extern osThreadId EventWriteTaskHandle;
-//extern osMutexId UartMutexHandle;
+
 extern status_register_struct status_registers;
 extern control_register_struct control_registers;
 
@@ -34,6 +34,7 @@ void ThreadSecurityTask(void const * argument)
 	{
 		if(control_registers.lighting_switching_reg == LIGHTING_ON) // если функция освещения включена
 		{
+
 			if( HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == GPIO_PIN_RESET ) // если нет наличия фазы А1
 			{
 				LED3_OFF();
@@ -91,7 +92,6 @@ void ThreadSecurityTask(void const * argument)
 		}
 
 
-		//(control_registers.control_loop_reg)&0x01
 		if( (status_registers.security_status_reg == ENABLED_BY_IBUTTON) || (status_registers.security_status_reg == ENABLED_BY_SERVER) ) // если режим охраны включен таблеткой или из центра
 		{
 
@@ -126,10 +126,6 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
-
-						//osThreadResume(EventWriteTaskHandle);
-
-						//LED5_ON();
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);
@@ -185,10 +181,6 @@ void ThreadSecurityTask(void const * argument)
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
-						//osThreadResume(EventWriteTaskHandle);
-
-						//LED5_ON();
-
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
@@ -242,10 +234,6 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
-
-						//osThreadResume(EventWriteTaskHandle);
-
-						//LED5_ON();
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);
@@ -301,10 +289,6 @@ void ThreadSecurityTask(void const * argument)
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
-						//osThreadResume(EventWriteTaskHandle);
-
-						//LED5_ON();
-
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
@@ -358,10 +342,6 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
-
-						//osThreadResume(EventWriteTaskHandle);
-
-						//LED5_ON();
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);
@@ -417,10 +397,6 @@ void ThreadSecurityTask(void const * argument)
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
-						//osThreadResume(EventWriteTaskHandle);
-
-						//LED5_ON();
-
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
@@ -475,10 +451,6 @@ void ThreadSecurityTask(void const * argument)
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
-						//osThreadResume(EventWriteTaskHandle);
-
-						//LED5_ON();
-
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
@@ -532,10 +504,6 @@ void ThreadSecurityTask(void const * argument)
 						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
-
-						//osThreadResume(EventWriteTaskHandle);
-
-						//LED5_ON();
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
 						fm25v02_write(GPRS_CALL_REG, CALL_ON);

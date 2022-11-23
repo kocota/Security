@@ -40,26 +40,9 @@ volatile uint8_t request_state = 0;
 
 void ThreadM95Task(void const * argument)
 {
-	//osThreadSuspendAll();
 
 	osSemaphoreWait(TransmissionStateHandle, osWaitForever); // обнуляем семафор, при создании семафора его значение равно 1
 	osSemaphoreWait(ReceiveStateHandle, osWaitForever); // обнуляем семафор, при создании семафора его значение равно 1
-	//HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1); // включаем прием от модема
-
-
-
-	/*
-	HAL_Delay(2000); // ждем
-	state = AT(); // проверяем связь с модемом
-
-	if(AT()==AT_ERROR)
-	{
-		m95_power_on();
-		HAL_Delay(7000);
-	}
-
-	state = AT(); // проверяем связь с модемом
-	*/
 
 	if(AT()==AT_ERROR)
 	{
@@ -101,9 +84,6 @@ void ThreadM95Task(void const * argument)
 
 	fm25v02_fast_write(VERSION_REG, &Version_L, 1); // записываем в память версию прошивки
 
-	//fm25v02_fast_write(ID_HIGH_REG, &idh, 1);
-	//fm25v02_fast_write(ID_LOW_REG, &idl, 1);
-
 	fm25v02_fast_read(IP_1_REG, &ip1, 1); // читаем значение IP адреса сервера из памяти
 	fm25v02_fast_read(IP_2_REG, &ip2, 1);
 	fm25v02_fast_read(IP_3_REG, &ip3, 1);
@@ -117,12 +97,14 @@ void ThreadM95Task(void const * argument)
 
 	if ( (ip1==0)&&(ip2==0)&&(ip3==0)&&(ip4==0)&&(port==0) ) // Если значения ip адреса сервера и его номера порта при инициализации нулевые, то выставляем их значения по умолчанию
 	{
+		// сервер сигнализации
 		ip1 = 195;    // значение по умолчанию
 		ip2 = 208;    // значение по умолчанию
 		ip3 = 163;    // значение по умолчанию
 		ip4 = 67;     // значение по умолчанию
 		port = 35050; // значение по умолчанию
 
+		// сервер освещения
 		//ip1 = 195;    // значение по умолчанию
 		//ip2 = 208;    // значение по умолчанию
 		//ip3 = 163;    // значение по умолчанию
@@ -142,12 +124,11 @@ void ThreadM95Task(void const * argument)
 			{
 				m95_power_on();
 			}
-			//HAL_Delay(10000);
 		}
 
 		if( ATE0() == AT_OK )
 		{
-			//LED8_ON();
+
 		}
 
 		osMutexRelease(UartMutexHandle);
@@ -168,7 +149,6 @@ void ThreadM95Task(void const * argument)
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
 					fm25v02_fast_write(ICCID_NUMBER_REG1, &id2[0], 8); // записываем в регистры CCID сим-карты
 					osMutexRelease(Fm25v02MutexHandle);
-					//fm25v02_fast_write(ICCID_NUMBER_REG1*2, &id2[0], 8); // записываем в регистры CCID сим-карты
 				}
 
 				if(AT_QIREGAPP("mts.internet.ru", "mts", "mts") == AT_OK)
@@ -203,7 +183,7 @@ void ThreadM95Task(void const * argument)
 				LED1_OFF();
 				if( AT_QIOPEN("TCP", ip1, ip2, ip3, ip4, port) == AT_OK )
 				{
-					//LED1_ON();
+
 				}
 				else
 				{
@@ -217,7 +197,7 @@ void ThreadM95Task(void const * argument)
 				LED1_OFF();
 				if( AT_QIOPEN("TCP", ip1 , ip2, ip3, ip4, port) == AT_OK )
 				{
-					//LED1_ON();
+
 				}
 				else
 				{
@@ -255,79 +235,30 @@ void ThreadM95Task(void const * argument)
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
 					fm25v02_write(GPRS_CALL_REG, CALL_ON);
 					osMutexRelease(Fm25v02MutexHandle);
-					//osTimerStart(Ring_Center_TimerHandle, 1);
 				}
 
 			break;
 
 			case AT_ERROR:
-				//LED_VD4_TOGGLE();
+
 			break;
 
 			default:
-				//LED_VD4_TOGGLE();
+
 			break;
 
 		}
 
 		osMutexRelease(UartMutexHandle);
 
-
-
-		//if (AT_QISEND(9) == AT_OK)
-		//{
-			//HAL_Delay(3000);
-			//LED_VD4_TOGGLE();
-		//}
-
-
-
+		// образцы АТ команд
 		/*
-		if(AT_CSQ(&level) == AT_OK)
-		{
-
-		}
-
-		if(AT_COPS() == AT_OK)
-		{
-
-		}
-
-		if(AT_QIFGCNT(0) == AT_OK)
-		{
-			//LED_VD4_TOGGLE();
-		}
-		if(AT_QIMUX(0) == AT_OK)
-		{
-
-		}
-		if(AT_QIMODE(0) == AT_OK)
-		{
-
-		}
-		if(AT_QISTATE() == IP_INITIAL)
-		{
-			LED_VD4_TOGGLE();
-		}
-		if(AT_QIHEAD(1) == AT_OK)
-		{
-
-		}
-		if(AT_QISHOWPT(0) == AT_OK)
-		{
-
-		}
+		if(AT_QIFGCNT(0) == AT_OK){}
+		if(AT_QIMUX(0) == AT_OK){}
+		if(AT_QIMODE(0) == AT_OK){}
+		if(AT_QIHEAD(1) == AT_OK){}
+		if(AT_QISHOWPT(0) == AT_OK){}
 		*/
-
-
-		//if(AT_QIREGAPP("mts.internet.ru", "mts", "mts") == AT_OK)
-		//{
-
-		//}
-		//if(AT_QIACT() == AT_OK)
-		//{
-
-		//}
 
 		osDelay(1000);
 

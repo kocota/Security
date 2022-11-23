@@ -105,22 +105,6 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 #define ICCID_NUMBER_REG7                0x105E // (4190) ICCID номер 7
 #define ICCID_NUMBER_REG8                0x105F // (4191) ICCID номер 8
 
-/*
-#define CE_303_TOTAL_POWER_H_REG         0x1031 // (4145) суммарная мощность, старший байт
-#define CE_303_TOTAL_POWER_L_REG         0x1032 // (4146) суммарная мощность, младший байт
-#define CE_303_TOTAL_POWER_MIL_REG       0x1033 // (4147) суммарная мощность миливатт
-
-#define SIGNAL_LEVEL_REG                 0x1034 // (4148) уровень сигнала
-#define ICCID_NUMBER_REG1                0x1035 // (4149) ICCID номер 1
-#define ICCID_NUMBER_REG2                0x1036 // (4150) ICCID номер 2
-#define ICCID_NUMBER_REG3                0x1037 // (4151) ICCID номер 3
-#define ICCID_NUMBER_REG4                0x1038 // (4152) ICCID номер 4
-#define ICCID_NUMBER_REG5                0x1039 // (4153) ICCID номер 5
-#define ICCID_NUMBER_REG6                0x103A // (4154) ICCID номер 6
-#define ICCID_NUMBER_REG7                0x103B // (4155) ICCID номер 7
-#define ICCID_NUMBER_REG8                0x103C // (4156) ICCID номер 8
-*/
-
 
 // -------------------------------------------------------
 
@@ -156,7 +140,7 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 
 #define ID_HIGH_REG                      0x10AB // (4267) ID устройства, старший байт
 #define ID_LOW_REG                       0x10AC // (4268) ID устройства, младший байт
-#define RESET_CONTROL_REG                0x10AD // (4269) регистр управления лампочной
+#define RESET_CONTROL_REG                0x10AD // (4269) регистр управления перезагрузкой
 #define METER_POLLING_REG                0x10AE // (4270) включение опроса счётчика ( 1 - счётчик опрашивается 0 - нет )
 #define IP_1_REG                         0x10AF // (4271) IP сервера
 #define IP_2_REG                         0x10B0 // (4272) IP сервера

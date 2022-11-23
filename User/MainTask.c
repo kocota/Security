@@ -9,7 +9,6 @@
 extern osThreadId EventWriteTaskHandle;
 extern osTimerId Ring_Center_TimerHandle;
 extern RTC_HandleTypeDef hrtc;
-//extern osMutexId UartMutexHandle;
 extern osThreadId LedTaskHandle;
 extern osMutexId Fm25v02MutexHandle;
 extern status_register_struct status_registers;
@@ -25,31 +24,17 @@ uint16_t status_registers_quantity = 58; // количество статусн�
 volatile uint8_t security_control_temp = 0;
 volatile uint8_t security_state_temp = 0;
 
-//uint8_t address1[10] = {0, 0, 0, 3, 4, 1, 0, 0, 0, 0};
-//uint8_t address1[10] = "SEND OK   ";
-
-//uint8_t len;
-
-//uint8_t asdf[3] = "END";
-
-//uint32_t* a;
 
 
 
 void ThreadMainTask(void const * argument)
 {
-	//read_status_registers();
-	//read_control_registers();
-
-	//osThreadResume(LedTaskHandle);
 
 	osDelay(1000);
 
 
 	for(;;)
 	{
-		//read_status_registers();
-		//read_control_registers();
 
 		if( HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_0) == GPIO_PIN_SET ) // проверяем если есть наличие единицы на пине PFO микросхемы TPS3306-15
 		{
@@ -59,11 +44,7 @@ void ThreadMainTask(void const * argument)
 				fm25v02_write(POWER_ON_REG, 1);
 				status_registers.power_on_reg = 1;
 				osMutexRelease(Fm25v02MutexHandle);
-				/*
-	  			osMutexWait(UartMutexHandle, osWaitForever);
-	  			request_to_server();
-	  			osMutexRelease(UartMutexHandle);
-	  			*/
+
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
@@ -74,7 +55,6 @@ void ThreadMainTask(void const * argument)
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osThreadResume(EventWriteTaskHandle);
-				//osTimerStart(Ring_Center_TimerHandle, 1);
 			}
 		}
 		else // если на пине PFO микросхемы TPS3306-15 нет наличия единицы
@@ -85,11 +65,7 @@ void ThreadMainTask(void const * argument)
 				fm25v02_write(POWER_ON_REG, 0);
 				status_registers.power_on_reg = 0;
 				osMutexRelease(Fm25v02MutexHandle);
-				/*
-	  			osMutexWait(UartMutexHandle, osWaitForever);
-	  			request_to_server();
-	  			osMutexRelease(UartMutexHandle);
-	  			*/
+
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(GPRS_CALL_REG, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
@@ -100,7 +76,6 @@ void ThreadMainTask(void const * argument)
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osThreadResume(EventWriteTaskHandle);
-				//osTimerStart(Ring_Center_TimerHandle, 1);
 			}
 		}
 
@@ -136,22 +111,11 @@ void ThreadMainTask(void const * argument)
 
 				security_control_temp = ENABLED_BY_SERVER;
 
-				//security_state_temp = status_registers.security_status_reg;
-
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
 				control_registers.security_control_reg = SECURITY_CONTROL_DEFAULT; // обновляем переменную
 				fm25v02_write(SECURITY_STATUS_REG, ARMING_PROCESS);
 				osMutexRelease(Fm25v02MutexHandle);
-
-				//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				//fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
-				//fm25v02_write(SECURITY_STATUS_REG, ENABLED_BY_SERVER);
-				//osMutexRelease(Fm25v02MutexHandle);
-
-				//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				//fm25v02_write(GPRS_CALL_REG, CALL_ON);
-				//osMutexRelease(Fm25v02MutexHandle);
 
 			break;
 
@@ -180,22 +144,11 @@ void ThreadMainTask(void const * argument)
 
 				security_control_temp = ENABLED_BY_IBUTTON;
 
-				//security_state_temp = status_registers.security_status_reg;
-
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
 				control_registers.security_control_reg = SECURITY_CONTROL_DEFAULT; // обновляем переменную
 				fm25v02_write(SECURITY_STATUS_REG, ARMING_PROCESS);
 				osMutexRelease(Fm25v02MutexHandle);
-
-				//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				//fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
-				//fm25v02_write(SECURITY_STATUS_REG, ENABLED_BY_IBUTTON);
-				//osMutexRelease(Fm25v02MutexHandle);
-
-				//osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				//fm25v02_write(GPRS_CALL_REG, CALL_ON);
-				//osMutexRelease(Fm25v02MutexHandle);
 
 			break;
 		}
@@ -257,15 +210,6 @@ void ThreadMainTask(void const * argument)
 
 			break;
 
-			/*
-			default: // Если в регистр поступила любое другое число отличное от команды установки времени
-
-				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(TIME_UPDATE_REG, SET_TIME_DEFAULT);
-				osMutexRelease(Fm25v02MutexHandle);
-
-			break;
-			*/
 		}
 
 		switch(control_registers.reset_control_reg) // удаленная перезагрузка контроллера
@@ -276,13 +220,7 @@ void ThreadMainTask(void const * argument)
 				osMutexRelease(Fm25v02MutexHandle);
 				NVIC_SystemReset();
 			break;
-			/*
-			default:
-				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(LAMP_CONTROL_REG, 0);
-				osMutexRelease(Fm25v02MutexHandle);
-			break;
-			*/
+
 		}
 
 		switch(control_registers.alarm_loop_clear_reg) // сбросить сработавшие шлейфы
@@ -298,16 +236,9 @@ void ThreadMainTask(void const * argument)
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osThreadResume(EventWriteTaskHandle);
-				//osTimerStart(Ring_Center_TimerHandle, 1);
 
 			break;
-			/*
-			default:
-				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(ALARM_LOOP_CLEAR_REG, 0);
-				osMutexRelease(Fm25v02MutexHandle);
-			break;
-			*/
+
 		}
 
 		switch(control_registers.false_loop_clear_reg) // сбросить неисправные шлейфы
@@ -326,13 +257,7 @@ void ThreadMainTask(void const * argument)
 				//osTimerStart(Ring_Center_TimerHandle, 1);
 
 			break;
-			/*
-			default:
-				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(FALSE_LOOP_CLEAR_REG, 0);
-				osMutexRelease(Fm25v02MutexHandle);
-			break;
-			*/
+
 		}
 
 
@@ -344,8 +269,6 @@ void ThreadMainTask(void const * argument)
 				fm25v02_write(EVENT_READ_REG, 0);
 				fm25v02_write(ADDRESS_LAST_EVENT_H_REG, 0x20);
 				fm25v02_write(ADDRESS_LAST_EVENT_L_REG, 0x00);
-				//fm25v02_write(ADDRESS_PROCESSED_EVENT_H_REG, 0x27);
-				//fm25v02_write(ADDRESS_PROCESSED_EVENT_L_REG, 0x00);
 				osMutexRelease(Fm25v02MutexHandle);
 
 			break;

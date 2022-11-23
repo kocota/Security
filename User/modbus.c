@@ -13,349 +13,289 @@ control_register_struct control_registers;
 void read_status_registers(void)
 {
 	uint8_t status_reg_temp;
+
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(VERSION_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.version_reg = status_reg_temp|(((uint16_t)Version_H)<<8); // костыль для чтения регистра версии прошивки
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(SECURITY_STATUS_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.security_status_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(STATUS_LOOP_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.status_loop_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ERROR_LOOP_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.error_loop_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ALARM_LOOP_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.alarm_loop_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_CURRENT_YEAR_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.time_current_year_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_CURRENT_MONTH_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.time_current_month_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_CURRENT_DAY_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.time_current_day_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_CURRENT_HOUR_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.time_current_hour_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_CURRENT_MINUTE_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.time_current_minute_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_CURRENT_SECOND_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.time_current_second_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_CURRENT_WEEKDAY_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.time_current_weekday_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ADDRESS_PROCESSED_EVENT_H_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.address_processed_event_h_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ADDRESS_PROCESSED_EVENT_L_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.address_processed_event_l_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ADDRESS_LAST_EVENT_H_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.address_last_event_h_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ADDRESS_LAST_EVENT_L_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.address_last_event_l_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(SYSTEM_STATUS_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.system_status_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(POWER_ON_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.power_on_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ERROR_RTC_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.error_rtc_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(POWER_ON_LIGHTING_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.power_on_lighting_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IBUTTON_COMPLETE_0_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ibutton_complite_0_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IBUTTON_COMPLETE_1_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ibutton_complite_1_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IBUTTON_COMPLETE_2_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ibutton_complite_2_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IBUTTON_COMPLETE_3_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ibutton_complite_3_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IBUTTON_COMPLETE_4_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ibutton_complite_4_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IBUTTON_COMPLETE_5_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ibutton_complite_5_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IBUTTON_COMPLETE_6_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ibutton_complite_6_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IBUTTON_COMPLETE_7_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ibutton_complite_7_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_ERROR_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_error_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_CURRENT_A_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_current_a_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_CURRENT_B_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_current_b_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_CURRENT_C_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_current_c_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_CURRENT_MIL_A_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_current_mil_a_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_CURRENT_MIL_B_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_current_mil_b_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_CURRENT_MIL_C_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_current_mil_c_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_VOLT_A_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_volt_a_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_VOLT_B_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_volt_b_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_VOLT_C_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_volt_c_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_VOLT_MIL_A_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_volt_mil_a_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_VOLT_MIL_B_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_volt_mil_b_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_VOLT_MIL_C_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_volt_mil_c_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_POWER_A_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_power_a_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_POWER_B_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_power_b_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_POWER_C_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_power_c_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_POWER_MIL_A_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_power_mil_a_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_POWER_MIL_B_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_power_mil_b_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_POWER_MIL_C_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_power_mil_c_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(LIGHTING_STATUS_REG, &status_reg_temp);
 	status_registers.lighting_status_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(LIGHTING_ALARM_REG, &status_reg_temp);
 	status_registers.lighting_alarm_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(MONTH_LIGHTING_OFF_REG, &status_reg_temp);
 	status_registers.month_lighting_off_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(DAY_LIGHTING_OFF_REG, &status_reg_temp);
 	status_registers.day_lighting_off_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(HOUR_LIGHTING_OFF_REG, &status_reg_temp);
 	status_registers.hour_lighting_off_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(MINUTE_LIGHTING_OFF_REG, &status_reg_temp);
 	status_registers.minute_lighting_off_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(MONTH_LIGHTING_ON_REG, &status_reg_temp);
 	status_registers.month_lighting_on_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(DAY_LIGHTING_ON_REG, &status_reg_temp);
 	status_registers.day_lighting_on_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(HOUR_LIGHTING_ON_REG, &status_reg_temp);
 	status_registers.hour_lighting_on_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(MINUTE_LIGHTING_ON_REG, &status_reg_temp);
 	status_registers.minute_lighting_on_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CURRENT_PHASE_A_REG, &status_reg_temp);
 	status_registers.current_phase_a_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CURRENT_PHASE_B_REG, &status_reg_temp);
 	status_registers.current_phase_b_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CURRENT_PHASE_C_REG, &status_reg_temp);
 	status_registers.current_phase_c_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CURRENT_VOLTAGE_A_REG, &status_reg_temp);
 	status_registers.current_voltage_a_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CURRENT_VOLTAGE_B_REG, &status_reg_temp);
 	status_registers.current_voltage_b_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CURRENT_VOLTAGE_C_REG, &status_reg_temp);
 	status_registers.current_voltage_c_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TOTAL_POWER_H_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_total_power_h_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TOTAL_POWER_L_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_total_power_l_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TOTAL_POWER_M_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.ce303_total_power_m_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF1_POWER_H_REG, &status_reg_temp);
 	status_registers.ce303_tarif1_power_h_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF1_POWER_L_REG, &status_reg_temp);
 	status_registers.ce303_tarif1_power_l_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF1_POWER_MIL_REG, &status_reg_temp);
 	status_registers.ce303_tarif1_power_mil_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF2_POWER_H_REG, &status_reg_temp);
 	status_registers.ce303_tarif2_power_h_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF2_POWER_L_REG, &status_reg_temp);
 	status_registers.ce303_tarif2_power_l_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF2_POWER_MIL_REG, &status_reg_temp);
 	status_registers.ce303_tarif2_power_mil_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF3_POWER_H_REG, &status_reg_temp);
 	status_registers.ce303_tarif3_power_h_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF3_POWER_L_REG, &status_reg_temp);
 	status_registers.ce303_tarif3_power_l_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF3_POWER_MIL_REG, &status_reg_temp);
 	status_registers.ce303_tarif3_power_mil_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF4_POWER_H_REG, &status_reg_temp);
 	status_registers.ce303_tarif4_power_h_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF4_POWER_L_REG, &status_reg_temp);
 	status_registers.ce303_tarif4_power_l_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF4_POWER_MIL_REG, &status_reg_temp);
 	status_registers.ce303_tarif4_power_mil_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF5_POWER_H_REG, &status_reg_temp);
 	status_registers.ce303_tarif5_power_h_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF5_POWER_L_REG, &status_reg_temp);
 	status_registers.ce303_tarif5_power_l_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CE_303_TARIF5_POWER_MIL_REG, &status_reg_temp);
 	status_registers.ce303_tarif5_power_mil_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(SIGNAL_LEVEL_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.signal_level_reg = status_reg_temp;
 
-
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
 	fm25v02_read(ADVANCED_LOOP_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.advanced_loop_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ADDITIONAL_INPUT_REG1, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.additional_input_reg1 = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ADDITIONAL_INPUT_REG2, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.additional_input_reg2 = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ICCID_NUMBER_REG1, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.iccid_number_reg1 = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ICCID_NUMBER_REG2, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.iccid_number_reg2 = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ICCID_NUMBER_REG3, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.iccid_number_reg3 = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ICCID_NUMBER_REG4, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.iccid_number_reg4 = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ICCID_NUMBER_REG5, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.iccid_number_reg5 = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ICCID_NUMBER_REG6, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.iccid_number_reg6 = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ICCID_NUMBER_REG7, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	status_registers.iccid_number_reg7 = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ICCID_NUMBER_REG8, &status_reg_temp);
-	osMutexRelease(Fm25v02MutexHandle);
 	status_registers.iccid_number_reg8 = status_reg_temp;
+
+	osMutexRelease(Fm25v02MutexHandle);
 }
 //----------------------------------------------------------------
 
@@ -363,190 +303,155 @@ void read_status_registers(void)
 void read_control_registers(void)
 {
 	uint8_t status_reg_temp;
+
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(SECURITY_CONTROL_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.security_control_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(CONTROL_LOOP_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.control_loop_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(FILTER_TIME_LOOP_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.filter_time_loop_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(QUANTITY_FALSE_LOOP_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.quantity_false_loop_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_FALSE_LOOP_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.time_false_loop_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ALARM_LOOP_CLEAR_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.alarm_loop_clear_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(FALSE_LOOP_CLEAR_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.false_loop_clear_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(SECURITY_TIME_MAX_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.security_time_max_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_UPDATE_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.time_update_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_YEAR_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.time_year_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_MONTH_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.time_month_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_DAY_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.time_day_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_HOUR_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.time_hour_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_MINUTE_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.time_minute_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_SECONDS_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.time_seconds_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_WEEKDAY_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.time_weekday_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(MODBUS_IDLE_TIME_MAX_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.modbus_idle_time_max_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(TIME_CONNECTION_TEST_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.time_connection_test_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(EVENT_READ_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.event_read_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(EVENT_ADDRESS_HIGH_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.event_address_high_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(EVENT_ADDRESS_LOW_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.event_address_low_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(MODEM_RING_TRY_LOAD_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.modem_ring_try_load_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(MODEM_RING_PAUSE_LOAD_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.modem_ring_pause_load_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(MODEM_RING_PAUSE2_LOAD_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.modem_ring_pause2_load_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(RING_MINUTE_TIME_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.ring_minute_time_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(RING_HOUR_TIME_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.ring_hour_time_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ID_HIGH_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.id_high_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(ID_LOW_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.id_low_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(RESET_CONTROL_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.reset_control_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(METER_POLLING_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.meter_polling_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IP_1_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.ip1_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IP_2_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.ip2_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IP_3_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.ip3_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(IP_4_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.ip4_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(PORT_HIGH_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.port_high_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(PORT_LOW_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.port_low_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(METER_ID_HIGH_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.meter_id_high_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(METER_ID_LOW_REG, &status_reg_temp);
-	//osMutexRelease(Fm25v02MutexHandle);
 	control_registers.meter_id_low_reg = status_reg_temp;
-	//osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
 	fm25v02_read(GPRS_CALL_REG, &status_reg_temp);
 	control_registers.gprs_call_reg = status_reg_temp;
-	//osMutexRelease(Fm25v02MutexHandle);
+
 	fm25v02_read(MUTE_REG, &status_reg_temp);
 	control_registers.mute_reg = status_reg_temp;
-	//osMutexRelease(Fm25v02MutexHandle);
+
 	fm25v02_read(LIGHT_CONTROL_REG, &status_reg_temp);
 	control_registers.light_control_reg = status_reg_temp;
-	//osMutexRelease(Fm25v02MutexHandle);
+
 	fm25v02_read(LIGHTING_ALARM_RESET_REG, &status_reg_temp);
 	control_registers.lighting_alarm_reset_reg = status_reg_temp;
-	//osMutexRelease(Fm25v02MutexHandle);
+
 	fm25v02_read(CURRENT_MEASUREMENT_ACCURACY_REG, &status_reg_temp);
 	control_registers.current_measurement_accuracy_reg = status_reg_temp;
-	//osMutexRelease(Fm25v02MutexHandle);
+
 	fm25v02_read(MAX_CURRENT_PHASE_A, &status_reg_temp);
 	control_registers.max_current_phase_a = status_reg_temp;
-	//osMutexRelease(Fm25v02MutexHandle);
+
 	fm25v02_read(MAX_CURRENT_PHASE_B, &status_reg_temp);
 	control_registers.max_current_phase_b = status_reg_temp;
-	//osMutexRelease(Fm25v02MutexHandle);
+
 	fm25v02_read(MAX_CURRENT_PHASE_C, &status_reg_temp);
 	control_registers.max_current_phase_c = status_reg_temp;
-	//osMutexRelease(Fm25v02MutexHandle);
+
 	fm25v02_read(LIGHTING_SWITCHING_REG, &status_reg_temp);
 	control_registers.lighting_switching_reg = status_reg_temp;
-	//osMutexRelease(Fm25v02MutexHandle);
+
 	fm25v02_read(ALARM_SWITCHING_REG, &status_reg_temp);
-	osMutexRelease(Fm25v02MutexHandle);
 	control_registers.alarm_switching_reg = status_reg_temp;
-	//osMutexRelease(Fm25v02MutexHandle);
+
+	osMutexRelease(Fm25v02MutexHandle);
+
 }
 //----------------------------------------------------------------
 

@@ -12,32 +12,30 @@ extern control_register_struct control_registers;
 
 void ThreadEventWriteTask(void const * argument)
 {
-	uint8_t temp_data[30];
-	uint16_t address_event_temp;
-	uint8_t read_temp;
+	uint8_t temp_data[30]; // буфер для записи событий
+	uint16_t address_event_temp; // переменная для записи адреса последнего записанного события
+	uint8_t read_temp; // временная переменная для чтения из памяти
 
-	osMutexWait(Fm25v02MutexHandle, osWaitForever);
+	osMutexWait(Fm25v02MutexHandle, osWaitForever); // выставляем адрес начала записи событий по умолчанию
 	fm25v02_write(ADDRESS_PROCESSED_EVENT_H_REG, 0x20);
 	fm25v02_write(ADDRESS_PROCESSED_EVENT_L_REG, 0x00);
 	osMutexRelease(Fm25v02MutexHandle);
 
-	osMutexWait(Fm25v02MutexHandle, osWaitForever); // вычитывавем из памяти значение последнего события
+	osMutexWait(Fm25v02MutexHandle, osWaitForever); // вычитывавем из памяти значение адреса последнего события
 	fm25v02_read(ADDRESS_LAST_EVENT_H_REG, &read_temp);
 	status_registers.address_last_event_h_reg = read_temp;
 	fm25v02_read(ADDRESS_LAST_EVENT_L_REG, &read_temp);
 	status_registers.address_last_event_l_reg = read_temp;
 	osMutexRelease(Fm25v02MutexHandle);
 
-	address_event_temp = (((status_registers.address_last_event_h_reg)<<8)|(status_registers.address_last_event_l_reg&0x00FF));
+	address_event_temp = (((status_registers.address_last_event_h_reg)<<8)|(status_registers.address_last_event_l_reg&0x00FF)); // высчитываем адрес последнего события
 
-	if( (address_event_temp < 0x2000) || (address_event_temp > 0x7FFF) )
+	if( (address_event_temp < 0x2000) || (address_event_temp > 0x7FFF) ) // проверяем, входит ли значение последнего события в диапазон памяти событий, если нет, то выставляем по умолчанию
 	{
 		osMutexWait(Fm25v02MutexHandle, osWaitForever);
 		fm25v02_write(ADDRESS_LAST_EVENT_H_REG, 0x20);
 		fm25v02_write(ADDRESS_LAST_EVENT_L_REG, 0x00);
 		osMutexRelease(Fm25v02MutexHandle);
-		//fm25v02_fast_write(ADDRESS_LAST_EVENT_H_REG, 0x20, 1);
-		//fm25v02_fast_write(ADDRESS_LAST_EVENT_L_REG, 0x00, 1);
 	}
 
 
@@ -83,29 +81,6 @@ void ThreadEventWriteTask(void const * argument)
 
 			osMutexRelease(Fm25v02MutexHandle);
 
-			/*
-			temp_data[0] = status_registers.time_current_year_reg; // записываем текущие значения переменных для события во временный буфер
-			temp_data[1] = status_registers.time_current_month_reg;
-			temp_data[2] = status_registers.time_current_day_reg;
-			temp_data[3] = status_registers.time_current_hour_reg;
-			temp_data[4] = status_registers.time_current_minute_reg;
-			temp_data[5] = status_registers.time_current_second_reg;
-			temp_data[6] = status_registers.system_status_reg;
-			temp_data[7] = status_registers.security_status_reg;
-			temp_data[8] = status_registers.status_loop_reg;
-			temp_data[9] = status_registers.alarm_loop_reg;
-			temp_data[10] = status_registers.error_loop_reg;
-			temp_data[11] = status_registers.ibutton_complite_0_reg;
-			temp_data[12] = status_registers.ibutton_complite_1_reg;
-			temp_data[13] = status_registers.ibutton_complite_2_reg;
-			temp_data[14] = status_registers.ibutton_complite_3_reg;
-			temp_data[15] = status_registers.ibutton_complite_4_reg;
-			temp_data[16] = status_registers.ibutton_complite_5_reg;
-			temp_data[17] = status_registers.ibutton_complite_6_reg;
-			temp_data[18] = status_registers.ibutton_complite_7_reg;
-			temp_data[19] = status_registers.power_on_reg;
-			*/
-
 			osMutexWait(Fm25v02MutexHandle, osWaitForever);
 			fm25v02_fast_write(address_event_temp, &temp_data[0], 30); // переписываем текущие значения переменных для события в память
 			osMutexRelease(Fm25v02MutexHandle);
@@ -135,9 +110,6 @@ void ThreadEventWriteTask(void const * argument)
 		{
 
 		}
-
-
-
 
 		osDelay(1);
 	}

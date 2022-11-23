@@ -12,48 +12,14 @@ extern uint8_t security_state;
 
 void ThreadLedTask(void const * argument)
 {
-	//uint8_t enabled_by_server_counter = 0;
-	//uint8_t disabled_by_server_counter = 0;
-	//uint8_t enabled_by_ibutton_counter = 0;
-	//uint8_t disabled_by_ibutton_counter = 0;
+
 	uint8_t door_open_alarm_counter = 0; // счетчик времени для процесса тревоги открытия двери
 	uint8_t arming_process_counter = 0; // счетчик времени для процесса постановки на охрану
 	uint8_t arming_error_counter = 0; // счетчик времени для процесса ошибки постановки на охрану
 
-	osThreadSuspend(LedTaskHandle);
-	osThreadResume(IbuttonTaskHandle);
+	osThreadSuspend(LedTaskHandle); // переводим поток ThreadLedTask в спящий режим
+	osThreadResume(IbuttonTaskHandle); // пробуждаем поток ThreadIbuttonTask из спящего режима
 
-
-
-	/*
-	osMutexWait(Fm25v02MutexHandle, osWaitForever);
-	fm25v02_read(SECURITY_STATUS_REG, &security_state);//Читаем байт состояния охранной сигнализации из памяти
-	osMutexRelease(Fm25v02MutexHandle);
-	status_registers.security_status_reg = security_state;
-
-	if( (status_registers.security_status_reg == DISABLED_BY_IBUTTON) || (status_registers.security_status_reg == DISABLED_BY_SERVER) || (status_registers.security_status_reg == RESERVED_0) )//Проверяем состояние охранной сигнаизации и включаем или выключаем светодиоды
-	{
-		for(uint8_t i=0; i<40; i++)
-		{
-			LED_OUT_TOGGLE();
-			HAL_Delay(200);
-		}
-		LED2_OFF();
-		LED_OUT_OFF();
-	}
-	else if( (status_registers.security_status_reg == ENABLED_BY_IBUTTON) || (status_registers.security_status_reg == ENABLED_BY_SERVER) )
-	{
-		for(uint8_t i=0; i<8; i++)
-		{
-			LED_OUT_TOGGLE();
-			HAL_Delay(1000);
-		}
-		LED2_ON();
-		LED_OUT_ON();
-	}
-
-	osThreadResume(IbuttonTaskHandle);
-	*/
 
 
 	for(;;)
