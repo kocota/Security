@@ -69,7 +69,7 @@ void ThreadModbusPacketTask(void const * argument)
 						osMutexWait(UartMutexHandle, osWaitForever);
 						if( AT_QISEND(&buf_out1[0], 2*modbus_size+5) != AT_OK )
 						{
-							LED7_ON();
+							//LED7_ON();
 						}
 						osMutexRelease(UartMutexHandle);
 
@@ -98,7 +98,7 @@ void ThreadModbusPacketTask(void const * argument)
 						osMutexWait(UartMutexHandle, osWaitForever);
 						if( AT_QISEND(&buf_out1[0], 2*modbus_size+5) != AT_OK )
 						{
-							LED7_ON();
+							//LED7_ON();
 						}
 						osMutexRelease(UartMutexHandle);
 
@@ -161,7 +161,7 @@ void ThreadModbusPacketTask(void const * argument)
 					osMutexWait(UartMutexHandle, osWaitForever); // берем мьютекс для работы с модемом
 					if( AT_QISEND(&buf_out1[0], 8) != AT_OK ) // отправляем буфер с ответом на сервер о том, что полученные регистры записаны в память
 					{
-						LED7_ON();
+						//LED7_ON();
 					}
 					osMutexRelease(UartMutexHandle); // отдаем мьютекс для работы с модемом
 

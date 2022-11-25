@@ -80,6 +80,7 @@ osThreadId LedTaskHandle;
 osThreadId ArmingTaskHandle;
 osThreadId ReadRegistersTaskHandle;
 osThreadId EventWriteTaskHandle;
+osThreadId GetCurrentTaskHandle;
 
 osThreadId CurrentID;
 osMutexId Fm25v02MutexHandle;
@@ -105,11 +106,8 @@ volatile uint8_t read_rx_state;
 
 extern control_register_struct control_registers;
 
-uint32_t data_in[3];
 
-//char str1[] = "K\r\n";
 
-//uint8_t t=0;
 
 /* USER CODE END PV */
 
@@ -139,6 +137,7 @@ void ThreadLedTask(void const * argument);
 void ThreadArmingTask(void const * argument);
 void ThreadReadRegistersTask(void const * argument);
 void ThreadEventWriteTask(void const * argument);
+void ThreadGetCurrentTask(void const * argument);
 
 
 
@@ -159,36 +158,14 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	osSemaphoreRelease(TransmissionStateHandle);
 }
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
+
 	LED_VD5_TOGGLE();
 	modem_rx_buffer[modem_rx_number++] = modem_rx_data[0];
 	osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 2000);
 	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
-
-
-	//osSemaphoreRelease(ReceiveStateHandle);
-/*
-	if( modem_rx_data[0] == '\n')
-	{
-		osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 0);
-		osThreadResume(M95TaskHandle);
-		osSemaphoreRelease(ReceiveStateHandle);
-	}
-	else if( modem_rx_data[0] == '>')
-	{
-		osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 0);
-		osSemaphoreRelease(ReceiveStateHandle);
-		//osThreadResume(ModbusTaskHandle);
-	}
-	else
-	{
-		osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 0);
-	}
-*/
-
-
-
 
 }
 
@@ -239,8 +216,7 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
-  //LED_VD3_ON();
-  //BUZ_OFF();
+
   BUZ_ON();
   HAL_Delay(50);
   BUZ_OFF();
@@ -254,17 +230,6 @@ int main(void)
 	  LED_VD4_OFF();
   }
 
-  //modem_tx_data[0]='A';
-  //modem_tx_data[1]='T';
-  //modem_tx_data[2]='\r';
-  //modem_tx_data[2]='\n';
-
-  //m95_power_on();
-  //HAL_Delay(5000);
-  //HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 8);
-  //HAL_UART_Transmit_DMA(&huart3, &modem_tx_data[0], 3);
-
-  //HAL_ADC_Start(&hadc1);
 
 
 
@@ -364,6 +329,9 @@ int main(void)
 
   osThreadDef(EventWriteTask, ThreadEventWriteTask, osPriorityNormal, 0, 128);
   EventWriteTaskHandle = osThreadCreate(osThread(EventWriteTask), NULL);
+
+  osThreadDef(GetCurrentTask, ThreadGetCurrentTask, osPriorityNormal, 0, 128);
+  GetCurrentTaskHandle = osThreadCreate(osThread(GetCurrentTask), NULL);
 
 
   /* USER CODE END RTOS_THREADS */
@@ -529,10 +497,10 @@ static void MX_IWDG_Init(void)
   hiwdg.Instance = IWDG;
   hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
   hiwdg.Init.Reload = 4000;
-  //if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
-  //{
-    //Error_Handler();
-  //}
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN IWDG_Init 2 */
 
   /* USER CODE END IWDG_Init 2 */
@@ -877,44 +845,10 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
 
-	HAL_ADCEx_InjectedStart(&hadc1);
-
-	while( HAL_ADCEx_InjectedPollForConversion(&hadc1, 100) != HAL_OK )
-	{
-		LED5_TOGGLE();
-	}
-
-	data_in[0] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-	data_in[1] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_2);
-	data_in[2] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_3);
-	if(data_in[0]>2500)
-	{
-		LED6_ON();
-	}
-	else
-	{
-		LED6_OFF();
-	}
-	if(data_in[1]>2500)
-	{
-		LED7_ON();
-	}
-	else
-	{
-		LED7_OFF();
-	}
-	if(data_in[2]>2500)
-	{
-		LED8_ON();
-	}
-	else
-	{
-		LED8_OFF();
-	}
-
-	//HAL_IWDG_Refresh(&hiwdg);
+	HAL_IWDG_Refresh(&hiwdg);
 	LED_VD3_TOGGLE();
     osDelay(1000);
+
   }
   /* USER CODE END 5 */
 }
@@ -923,9 +857,8 @@ void StartDefaultTask(void const * argument)
 void Callback_AT_Timer(void const * argument)
 {
   /* USER CODE BEGIN Callback_AT_Timer */
+
 	read_rx_state = NOT_ACTIVE;
-	//LED_VD4_ON();
-	//osThreadResume(M95TaskHandle);
 
   /* USER CODE END Callback_AT_Timer */
 }
@@ -936,22 +869,7 @@ void Callback_Ring_Center_Timer(void const * argument)
   /* USER CODE BEGIN Callback_Ring_Center_Timer */
 
 	NVIC_SystemReset();
-	/*
-	uint8_t timer_temp_reg;
-	osMutexWait(Fm25v02MutexHandle, osWaitForever);
-	fm25v02_read(GPRS_CALL_REG, &timer_temp_reg);
-	osMutexRelease(Fm25v02MutexHandle);
-	control_registers.gprs_call_reg = timer_temp_reg;
 
-	if(control_registers.gprs_call_reg == CALL_ON)
-	{
-		osMutexWait(UartMutexHandle, osWaitForever);
-		while(request_to_server() != AT_OK){};
-		osMutexRelease(UartMutexHandle);
-	}
-
-	osTimerStart(Ring_Center_TimerHandle, 30000);
-	*/
   /* USER CODE END Callback_Ring_Center_Timer */
 }
 
@@ -983,8 +901,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-	//LED7_ON();
+
 	NVIC_SystemReset();
+
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
