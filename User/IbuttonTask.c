@@ -57,18 +57,27 @@ void ThreadIbuttonTask(void const * argument)
 			  		{
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(IBUTTON_COMPLETE_0_REG, ibutton_temp[0]);
-						fm25v02_write(IBUTTON_COMPLETE_1_REG, ibutton_temp[1]);
-						fm25v02_write(IBUTTON_COMPLETE_2_REG, ibutton_temp[2]);
-						fm25v02_write(IBUTTON_COMPLETE_3_REG, ibutton_temp[3]);
-						fm25v02_write(IBUTTON_COMPLETE_4_REG, ibutton_temp[4]);
-						fm25v02_write(IBUTTON_COMPLETE_5_REG, ibutton_temp[5]);
-						fm25v02_write(IBUTTON_COMPLETE_6_REG, ibutton_temp[6]);
-						fm25v02_write(IBUTTON_COMPLETE_7_REG, ibutton_temp[7]);
+						fm25v02_write(2*IBUTTON_COMPLETE_0_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_0_REG+1, ibutton_temp[0]);
+						fm25v02_write(2*IBUTTON_COMPLETE_1_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_1_REG+1, ibutton_temp[1]);
+						fm25v02_write(2*IBUTTON_COMPLETE_2_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_2_REG+1, ibutton_temp[2]);
+						fm25v02_write(2*IBUTTON_COMPLETE_3_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_3_REG+1, ibutton_temp[3]);
+						fm25v02_write(2*IBUTTON_COMPLETE_4_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_4_REG+1, ibutton_temp[4]);
+						fm25v02_write(2*IBUTTON_COMPLETE_5_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_5_REG+1, ibutton_temp[5]);
+						fm25v02_write(2*IBUTTON_COMPLETE_6_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_6_REG+1, ibutton_temp[6]);
+						fm25v02_write(2*IBUTTON_COMPLETE_7_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_7_REG+1, ibutton_temp[7]);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SECURITY_CONTROL_REG, ENABLE_FROM_IBUTTON); // запускаем процесс постановки на охрану
+						fm25v02_write(2*SECURITY_CONTROL_REG, 0x00); // запускаем процесс постановки на охрану
+						fm25v02_write(2*SECURITY_CONTROL_REG+1, ENABLE_FROM_IBUTTON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						control_registers.security_control_reg = ENABLE_FROM_IBUTTON;
@@ -81,18 +90,27 @@ void ThreadIbuttonTask(void const * argument)
 			  		{
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(IBUTTON_COMPLETE_0_REG, ibutton_temp[0]);
-						fm25v02_write(IBUTTON_COMPLETE_1_REG, ibutton_temp[1]);
-						fm25v02_write(IBUTTON_COMPLETE_2_REG, ibutton_temp[2]);
-						fm25v02_write(IBUTTON_COMPLETE_3_REG, ibutton_temp[3]);
-						fm25v02_write(IBUTTON_COMPLETE_4_REG, ibutton_temp[4]);
-						fm25v02_write(IBUTTON_COMPLETE_5_REG, ibutton_temp[5]);
-						fm25v02_write(IBUTTON_COMPLETE_6_REG, ibutton_temp[6]);
-						fm25v02_write(IBUTTON_COMPLETE_7_REG, ibutton_temp[7]);
+						fm25v02_write(2*IBUTTON_COMPLETE_0_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_0_REG+1, ibutton_temp[0]);
+						fm25v02_write(2*IBUTTON_COMPLETE_1_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_1_REG+1, ibutton_temp[1]);
+						fm25v02_write(2*IBUTTON_COMPLETE_2_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_2_REG+1, ibutton_temp[2]);
+						fm25v02_write(2*IBUTTON_COMPLETE_3_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_3_REG+1, ibutton_temp[3]);
+						fm25v02_write(2*IBUTTON_COMPLETE_4_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_4_REG+1, ibutton_temp[4]);
+						fm25v02_write(2*IBUTTON_COMPLETE_5_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_5_REG+1, ibutton_temp[5]);
+						fm25v02_write(2*IBUTTON_COMPLETE_6_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_6_REG+1, ibutton_temp[6]);
+						fm25v02_write(2*IBUTTON_COMPLETE_7_REG, 0x00);
+						fm25v02_write(2*IBUTTON_COMPLETE_7_REG+1, ibutton_temp[7]);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SECURITY_CONTROL_REG, DISABLE_FROM_IBUTTON); // запускаем процесс постановки на охрану
+						fm25v02_write(2*SECURITY_CONTROL_REG, 0x00); // запускаем процесс постановки на охрану
+						fm25v02_write(2*SECURITY_CONTROL_REG+1, DISABLE_FROM_IBUTTON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						control_registers.security_control_reg = DISABLE_FROM_IBUTTON;

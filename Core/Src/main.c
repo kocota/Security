@@ -497,10 +497,10 @@ static void MX_IWDG_Init(void)
   hiwdg.Instance = IWDG;
   hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
   hiwdg.Init.Reload = 4000;
-  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  //if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  //{
+    //Error_Handler();
+  //}
   /* USER CODE BEGIN IWDG_Init 2 */
 
   /* USER CODE END IWDG_Init 2 */
@@ -845,7 +845,7 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
 
-	HAL_IWDG_Refresh(&hiwdg);
+	//HAL_IWDG_Refresh(&hiwdg);
 	LED_VD3_TOGGLE();
     osDelay(1000);
 
@@ -902,7 +902,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
 
-	NVIC_SystemReset();
+	//NVIC_SystemReset();
 
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();

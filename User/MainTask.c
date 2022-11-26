@@ -6,6 +6,7 @@
 #include "SecurityTask.h"
 #include "m95.h"
 
+extern osThreadId MainTaskHandle;
 extern osThreadId EventWriteTaskHandle;
 extern osTimerId Ring_Center_TimerHandle;
 extern RTC_HandleTypeDef hrtc;
@@ -30,7 +31,7 @@ volatile uint8_t security_state_temp = 0;
 void ThreadMainTask(void const * argument)
 {
 
-	osDelay(1000);
+	osThreadSuspend(MainTaskHandle); // ждем пока не будут вычитаны регистры
 
 
 	for(;;)
@@ -41,16 +42,19 @@ void ThreadMainTask(void const * argument)
 			if(status_registers.power_on_reg == 0) // если основного питания до этого не было, записываем в регистр наличия питания 1
 			{
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(POWER_ON_REG, 1);
+				fm25v02_write(2*POWER_ON_REG, 0x00);
+				fm25v02_write(2*POWER_ON_REG+1, 1);
 				status_registers.power_on_reg = 1;
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				fm25v02_write(2*GPRS_CALL_REG, 0x00);
+				fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SYSTEM_STATUS_REG, POWER_ON);
+				fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+				fm25v02_write(2*SYSTEM_STATUS_REG+1, POWER_ON);
 				status_registers.system_status_reg = POWER_ON;
 				osMutexRelease(Fm25v02MutexHandle);
 
@@ -62,16 +66,19 @@ void ThreadMainTask(void const * argument)
 			if(status_registers.power_on_reg == 1)
 			{
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(POWER_ON_REG, 0);
+				fm25v02_write(2*POWER_ON_REG, 0x00);
+				fm25v02_write(2*POWER_ON_REG+1, 0x00);
 				status_registers.power_on_reg = 0;
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				fm25v02_write(2*GPRS_CALL_REG, 0x00);
+				fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SYSTEM_STATUS_REG, POWER_OFF);
+				fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+				fm25v02_write(2*SYSTEM_STATUS_REG+1, POWER_OFF);
 				status_registers.system_status_reg = POWER_OFF;
 				osMutexRelease(Fm25v02MutexHandle);
 
@@ -87,17 +94,21 @@ void ThreadMainTask(void const * argument)
 				BUZ_OFF();
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
+				fm25v02_write(2*SECURITY_CONTROL_REG, 0x00);
+				fm25v02_write(2*SECURITY_CONTROL_REG+1, SECURITY_CONTROL_DEFAULT);
 				control_registers.security_control_reg = SECURITY_CONTROL_DEFAULT; // обновляем переменную
-				fm25v02_write(SECURITY_STATUS_REG, DISABLED_BY_SERVER);
+				fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+				fm25v02_write(2*SECURITY_STATUS_REG+1, DISABLED_BY_SERVER);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				fm25v02_write(2*GPRS_CALL_REG, 0x00);
+				fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SYSTEM_STATUS_REG, TURN_OFF_STATE_ALARM);
+				fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+				fm25v02_write(2*SYSTEM_STATUS_REG+1, TURN_OFF_STATE_ALARM);
 				status_registers.system_status_reg = TURN_OFF_STATE_ALARM;
 				osMutexRelease(Fm25v02MutexHandle);
 
@@ -112,9 +123,11 @@ void ThreadMainTask(void const * argument)
 				security_control_temp = ENABLED_BY_SERVER;
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
+				fm25v02_write(2*SECURITY_CONTROL_REG, 0x00);
+				fm25v02_write(2*SECURITY_CONTROL_REG+1, SECURITY_CONTROL_DEFAULT);
 				control_registers.security_control_reg = SECURITY_CONTROL_DEFAULT; // обновляем переменную
-				fm25v02_write(SECURITY_STATUS_REG, ARMING_PROCESS);
+				fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+				fm25v02_write(2*SECURITY_STATUS_REG+1, ARMING_PROCESS);
 				osMutexRelease(Fm25v02MutexHandle);
 
 			break;
@@ -122,17 +135,21 @@ void ThreadMainTask(void const * argument)
 			case(DISABLE_FROM_IBUTTON): // если поступила команда выключить из сервера или с таблетки
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
+				fm25v02_write(2*SECURITY_CONTROL_REG, 0x00);
+				fm25v02_write(2*SECURITY_CONTROL_REG+1, SECURITY_CONTROL_DEFAULT);
 				control_registers.security_control_reg = SECURITY_CONTROL_DEFAULT; // обновляем переменную
-				fm25v02_write(SECURITY_STATUS_REG, DISABLED_BY_IBUTTON);
+				fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+				fm25v02_write(2*SECURITY_STATUS_REG+1, DISABLED_BY_IBUTTON);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				fm25v02_write(2*GPRS_CALL_REG, 0x00);
+				fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SYSTEM_STATUS_REG, TURN_OFF_STATE_ALARM);
+				fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+				fm25v02_write(2*SYSTEM_STATUS_REG+1, TURN_OFF_STATE_ALARM);
 				status_registers.system_status_reg = TURN_OFF_STATE_ALARM;
 				osMutexRelease(Fm25v02MutexHandle);
 
@@ -145,9 +162,11 @@ void ThreadMainTask(void const * argument)
 				security_control_temp = ENABLED_BY_IBUTTON;
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
+				fm25v02_write(2*SECURITY_CONTROL_REG, 0x00);
+				fm25v02_write(2*SECURITY_CONTROL_REG+1, SECURITY_CONTROL_DEFAULT);
 				control_registers.security_control_reg = SECURITY_CONTROL_DEFAULT; // обновляем переменную
-				fm25v02_write(SECURITY_STATUS_REG, ARMING_PROCESS);
+				fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+				fm25v02_write(2*SECURITY_STATUS_REG+1, ARMING_PROCESS);
 				osMutexRelease(Fm25v02MutexHandle);
 
 			break;
@@ -158,7 +177,8 @@ void ThreadMainTask(void const * argument)
 			case(SET_TIME): // Если в регистр записана команда установить время
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(TIME_UPDATE_REG, SET_TIME_DEFAULT);
+				fm25v02_write(2*TIME_UPDATE_REG, 0x00);
+				fm25v02_write(2*TIME_UPDATE_REG+1, SET_TIME_DEFAULT);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				set_time.Hours = control_registers.time_hour_reg; // записываем в переменные структуры времени значения регистров управления временем
@@ -198,13 +218,20 @@ void ThreadMainTask(void const * argument)
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
 
-				fm25v02_write(TIME_CURRENT_HOUR_REG, current_time.Hours); // записываем в регистры значения даты и времени
-				fm25v02_write(TIME_CURRENT_MINUTE_REG, current_time.Minutes);
-				fm25v02_write(TIME_CURRENT_SECOND_REG, current_time.Seconds);
-				fm25v02_write(TIME_CURRENT_DAY_REG, current_date.Date);
-				fm25v02_write(TIME_CURRENT_MONTH_REG, current_date.Month);
-				fm25v02_write(TIME_CURRENT_YEAR_REG, current_date.Year);
-				fm25v02_write(TIME_CURRENT_WEEKDAY_REG, current_date.WeekDay);
+				fm25v02_write(2*TIME_CURRENT_HOUR_REG, 0x00); // записываем в регистры значения даты и времени
+				fm25v02_write(2*TIME_CURRENT_HOUR_REG+1, current_time.Hours);
+				fm25v02_write(2*TIME_CURRENT_MINUTE_REG, 0x00);
+				fm25v02_write(2*TIME_CURRENT_MINUTE_REG+1, current_time.Minutes);
+				fm25v02_write(2*TIME_CURRENT_SECOND_REG, 0x00);
+				fm25v02_write(2*TIME_CURRENT_SECOND_REG+1, current_time.Seconds);
+				fm25v02_write(2*TIME_CURRENT_DAY_REG, 0x00);
+				fm25v02_write(2*TIME_CURRENT_DAY_REG+1, current_date.Date);
+				fm25v02_write(2*TIME_CURRENT_MONTH_REG, 0x00);
+				fm25v02_write(2*TIME_CURRENT_MONTH_REG+1, current_date.Month);
+				fm25v02_write(2*TIME_CURRENT_YEAR_REG, 0x00);
+				fm25v02_write(2*TIME_CURRENT_YEAR_REG+1, current_date.Year);
+				fm25v02_write(2*TIME_CURRENT_WEEKDAY_REG, 0x00);
+				fm25v02_write(2*TIME_CURRENT_WEEKDAY_REG+1, current_date.WeekDay);
 
 				osMutexRelease(Fm25v02MutexHandle);
 
@@ -216,7 +243,8 @@ void ThreadMainTask(void const * argument)
 		{
 			case(1):
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(RESET_CONTROL_REG, 0);
+				fm25v02_write(2*RESET_CONTROL_REG, 0);
+				fm25v02_write(2*RESET_CONTROL_REG+1, 0);
 				osMutexRelease(Fm25v02MutexHandle);
 				NVIC_SystemReset();
 			break;
@@ -227,12 +255,15 @@ void ThreadMainTask(void const * argument)
 		{
 			case(1):
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(ALARM_LOOP_CLEAR_REG, 0);
-				fm25v02_write(ALARM_LOOP_REG, 0);
+				fm25v02_write(2*ALARM_LOOP_CLEAR_REG, 0);
+				fm25v02_write(2*ALARM_LOOP_CLEAR_REG+1, 0);
+				fm25v02_write(2*ALARM_LOOP_REG, 0);
+				fm25v02_write(2*ALARM_LOOP_REG+1, 0);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				fm25v02_write(2*GPRS_CALL_REG, 0x00);
+				fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osThreadResume(EventWriteTaskHandle);
@@ -245,12 +276,15 @@ void ThreadMainTask(void const * argument)
 		{
 			case(1):
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(FALSE_LOOP_CLEAR_REG, 0);
-				fm25v02_write(ERROR_LOOP_REG, 0);
+				fm25v02_write(2*FALSE_LOOP_CLEAR_REG, 0);
+				fm25v02_write(2*FALSE_LOOP_CLEAR_REG+1, 0);
+				fm25v02_write(2*ERROR_LOOP_REG, 0);
+				fm25v02_write(2*ERROR_LOOP_REG+1, 0);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(GPRS_CALL_REG, CALL_ON);
+				fm25v02_write(2*GPRS_CALL_REG, 0x00);
+				fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 				osMutexRelease(Fm25v02MutexHandle);
 
 				osThreadResume(EventWriteTaskHandle);
@@ -266,9 +300,12 @@ void ThreadMainTask(void const * argument)
 			case(1):
 
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
-				fm25v02_write(EVENT_READ_REG, 0);
-				fm25v02_write(ADDRESS_LAST_EVENT_H_REG, 0x20);
-				fm25v02_write(ADDRESS_LAST_EVENT_L_REG, 0x00);
+				fm25v02_write(2*EVENT_READ_REG, 0);
+				fm25v02_write(2*EVENT_READ_REG+1, 0);
+				fm25v02_write(2*ADDRESS_LAST_EVENT_H_REG, 0x00);
+				fm25v02_write(2*ADDRESS_LAST_EVENT_H_REG+1, 0x20);
+				fm25v02_write(2*ADDRESS_LAST_EVENT_L_REG, 0x00);
+				fm25v02_write(2*ADDRESS_LAST_EVENT_L_REG+1, 0x00);
 				osMutexRelease(Fm25v02MutexHandle);
 
 			break;
@@ -309,6 +346,23 @@ void ThreadMainTask(void const * argument)
 			PHASE_A_OFF(); // отключаем фазу А
 			PHASE_B_OFF(); // отключаем фазу В
 			PHASE_C_OFF(); // отключаем фазу С
+		}
+
+		if(control_registers.lighting_switching_reg == LIGHTING_ON) // если функция освещения включена
+		{
+			switch(control_registers.lighting_alarm_reset_reg)
+			{
+				case(1):
+					osMutexWait(Fm25v02MutexHandle, osWaitForever);
+					fm25v02_write(2*LIGHTING_ALARM_RESET_REG, 0x00);
+					fm25v02_write(2*LIGHTING_ALARM_RESET_REG+1, 0x00);
+					control_registers.lighting_alarm_reset_reg = 0x00;
+					fm25v02_write(2*LIGHTING_ALARM_REG, 0x00);
+					fm25v02_write(2*LIGHTING_ALARM_REG+1, 0x00);
+					status_registers.lighting_alarm_reg = 0x00;
+					osMutexRelease(Fm25v02MutexHandle);
+				break;
+			}
 		}
 
 

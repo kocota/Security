@@ -3,6 +3,7 @@
 #include "modbus.h"
 #include "fm25v02.h"
 
+extern osThreadId MainTaskHandle;
 extern ADC_HandleTypeDef hadc1;
 extern osThreadId LedTaskHandle;
 extern osMutexId Fm25v02MutexHandle;
@@ -12,18 +13,19 @@ extern control_register_struct control_registers;
 
 void ThreadReadRegistersTask(void const * argument)
 {
-	read_status_registers();
+	read_status_registers(); // вычитываем регистры
 	read_control_registers();
-	osThreadResume(LedTaskHandle);
-	osDelay(1000);
+	osThreadResume(LedTaskHandle);  // запускаем процесс светодиодов
+	osThreadResume(MainTaskHandle); // запускаем основной процесс
+	osDelay(1000); //ждем 1 секунду
 
 
 	for(;;)
 	{
 
-		read_status_registers();
+		read_status_registers(); // вычитываем регистры
 		read_control_registers();
 
-		osDelay(1000);
+		osDelay(1000); // ждем 1 секунду
 	}
 }

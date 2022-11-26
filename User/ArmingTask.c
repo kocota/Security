@@ -146,16 +146,20 @@ void ThreadArmingTask(void const * argument)
 				if( control_loop_arming == control_registers.control_loop_reg)
 				{
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
-					fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
-					fm25v02_write(SECURITY_STATUS_REG, security_control_temp);
+					fm25v02_write(2*SECURITY_CONTROL_REG, 0x00);
+					fm25v02_write(2*SECURITY_CONTROL_REG+1, SECURITY_CONTROL_DEFAULT);
+					fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+					fm25v02_write(2*SECURITY_STATUS_REG+1, security_control_temp);
 					osMutexRelease(Fm25v02MutexHandle);
 
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
-					fm25v02_write(GPRS_CALL_REG, CALL_ON);
+					fm25v02_write(2*GPRS_CALL_REG, 0x00);
+					fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 					osMutexRelease(Fm25v02MutexHandle);
 
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
-					fm25v02_write(SYSTEM_STATUS_REG, TURN_ON_STATE_ALARM);
+					fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+					fm25v02_write(2*SYSTEM_STATUS_REG+1, TURN_ON_STATE_ALARM);
 					status_registers.system_status_reg = TURN_ON_STATE_ALARM;
 					osMutexRelease(Fm25v02MutexHandle);
 
@@ -164,16 +168,20 @@ void ThreadArmingTask(void const * argument)
 				else if( control_loop_arming != control_registers.control_loop_reg)
 				{
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
-					fm25v02_write(SECURITY_CONTROL_REG, SECURITY_CONTROL_DEFAULT);
-					fm25v02_write(SECURITY_STATUS_REG, ARMING_ERROR);
+					fm25v02_write(2*SECURITY_CONTROL_REG, 0x00);
+					fm25v02_write(2*SECURITY_CONTROL_REG+1, SECURITY_CONTROL_DEFAULT);
+					fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+					fm25v02_write(2*SECURITY_STATUS_REG+1, ARMING_ERROR);
 					osMutexRelease(Fm25v02MutexHandle);
 
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
-					fm25v02_write(GPRS_CALL_REG, CALL_ON);
+					fm25v02_write(2*GPRS_CALL_REG, 0x00);
+					fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 					osMutexRelease(Fm25v02MutexHandle);
 
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
-					fm25v02_write(SYSTEM_STATUS_REG, TURN_ON_ALARM_ERROR);
+					fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+					fm25v02_write(2*SYSTEM_STATUS_REG+1, TURN_ON_ALARM_ERROR);
 					status_registers.system_status_reg = TURN_ON_ALARM_ERROR;
 					osMutexRelease(Fm25v02MutexHandle);
 

@@ -39,7 +39,7 @@ void ThreadModbusPacketTask(void const * argument)
 
 				modbus_address = (((((uint16_t)modbus_buffer[modbus_packet_number1][2])<<8)&0xFF00)|(((uint16_t)modbus_buffer[modbus_packet_number1][3])&0xFF)); // считаем адрес регистра для чтения
 				modbus_size = (((((uint16_t)modbus_buffer[modbus_packet_number1][4])<<8)&0xFF00)|(((uint16_t)modbus_buffer[modbus_packet_number1][5])&0xFF)); //  считаем количество регистров для чтения
-
+					/*
 					if( modbus_address == VERSION_REG ) // костыль, при вычитывании версии прошивки
 					{
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
@@ -102,32 +102,40 @@ void ThreadModbusPacketTask(void const * argument)
 						}
 						osMutexRelease(UartMutexHandle);
 
-						// обработка пакета чтения 16-битного регистра modbus
-						/*
-						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_fast_read( modbus_address , &buf_out[0] , 2*modbus_size); // читаем из памяти необходимое количество регистров
-						osMutexRelease(Fm25v02MutexHandle);
-
-						buf_out1[0] = 0x01;
-						buf_out1[1] = 0x03;
-						buf_out1[2] = 2*modbus_size;
-						for(uint8_t i=0; i<2*modbus_size; i++)
-						{
-							buf_out1[2*i+3] = buf_out[i];
-							buf_out1[2*i+4] = buf_out[i+1];
-						}
-						crc_temp = CRC16(&buf_out1[0], 3+2*modbus_size);
-						buf_out1[2*modbus_size+3] = (uint8_t)(crc_temp&0x00FF);
-						buf_out1[2*modbus_size+4] = (uint8_t)((crc_temp>>8)&0x00FF);
-
-						osMutexWait(UartMutexHandle, osWaitForever);
-						if( AT_QISEND(&buf_out1[0], 2*modbus_size+5) != AT_OK )
-						{
-							LED7_ON();
-						}
-						osMutexRelease(UartMutexHandle);
-						*/
 					}
+					*/
+
+				// обработка пакета чтения 16-битного регистра modbus
+
+				osMutexWait(Fm25v02MutexHandle, osWaitForever);
+				fm25v02_fast_read( 2*modbus_address , &buf_out[0] , 2*modbus_size); // читаем из памяти необходимое количество регистров
+				osMutexRelease(Fm25v02MutexHandle);
+
+				buf_out1[0] = 0x01;
+				buf_out1[1] = 0x03;
+				buf_out1[2] = 2*modbus_size;
+				for(uint8_t i=0; i<modbus_size; i++)
+				{
+					buf_out1[2*i+3] = buf_out[2*i];
+					buf_out1[2*i+4] = buf_out[2*i+1];
+				}
+				crc_temp = CRC16(&buf_out1[0], 3+2*modbus_size);
+				buf_out1[2*modbus_size+3] = (uint8_t)(crc_temp&0x00FF);
+				buf_out1[2*modbus_size+4] = (uint8_t)((crc_temp>>8)&0x00FF);
+
+				osMutexWait(UartMutexHandle, osWaitForever);
+				if( AT_QISEND(&buf_out1[0], 2*modbus_size+5) != AT_OK )
+				{
+					//LED7_ON();
+				}
+				osMutexRelease(UartMutexHandle);
+
+				if( modbus_address == VERSION_REG ) // если запрашивается адрес версии прошивки обновляем таймер перезагрузки
+				{
+					//osTimerStop(Ring_Center_TimerHandle);
+					//osTimerStart(Ring_Center_TimerHandle, 300000);
+				}
+
 
 			break;
 
@@ -138,7 +146,8 @@ void ThreadModbusPacketTask(void const * argument)
 
 				if( !( (modbus_address>=0x1000) && (modbus_address<=0x108F) ) && !( (modbus_address<0x1000) && (modbus_address+modbus_size>0x1000) ) ) // модбас адресс не должен находиться в области статусных регистров, а также запись не должна затрагивать статусные регистры
 				{
-
+					// обработка пакета записи 8-битного регистра modbus
+					/*
 					for(uint8_t a=0; a<(modbus_buffer[modbus_packet_number1][6])/2; a++) // исправил 'i' на 'a', так как в функции fm25v02_fast_write() внутри уже есть 'i'
 					{
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
@@ -180,13 +189,15 @@ void ThreadModbusPacketTask(void const * argument)
 						//osTimerStart(Ring_Center_TimerHandle, 1);
 					}
 
+					*/
+
 					// обработка пакета записи 16-битного регистра modbus
-					/*
+
 					for(uint8_t a=0; a<(modbus_buffer[modbus_packet_number1][6])/2; a++)
 					{
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_fast_write(modbus_address+2*a, &modbus_buffer[modbus_packet_number1][7+a*2], 1);
-						fm25v02_fast_write(modbus_address+2*a+1, &modbus_buffer[modbus_packet_number1][8+a*2], 1);
+						fm25v02_fast_write( (2*modbus_address+2*a), &modbus_buffer[modbus_packet_number1][7+a*2], 1 );
+						fm25v02_fast_write( (2*modbus_address+2*a+1), &modbus_buffer[modbus_packet_number1][8+a*2], 1 );
 						osMutexRelease(Fm25v02MutexHandle);
 					}
 
@@ -205,11 +216,25 @@ void ThreadModbusPacketTask(void const * argument)
 					osMutexWait(UartMutexHandle, osWaitForever);
 					if( AT_QISEND(&buf_out1[0], 8) != AT_OK )
 					{
-						LED7_ON();
+
 					}
 					osMutexRelease(UartMutexHandle);
-
+					/*
+					if( modbus_address == CONTROL_LOOP_REG)
+					{
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(2*GPRS_CALL_REG, 0x00);
+						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
+					}
 					*/
+					if( modbus_address == 0x2710)
+					{
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_write(2*GPRS_CALL_REG, 0x00);
+						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
+						osMutexRelease(Fm25v02MutexHandle);
+					}
 
 				}
 

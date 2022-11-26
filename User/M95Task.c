@@ -98,22 +98,32 @@ void ThreadM95Task(void const * argument)
 
 
 	// сервер освещения Главный, неопределено 239
-	osMutexWait(Fm25v02MutexHandle, osWaitForever);
-	fm25v02_write(LIGHTING_SWITCHING_REG, 1);
-	fm25v02_write(ID_HIGH_REG, 0);
-	fm25v02_write(ID_LOW_REG, 239);
 
-	fm25v02_write(IP_1_REG, 213);
-	fm25v02_write(IP_2_REG, 183);
-	fm25v02_write(IP_3_REG, 101);
-	fm25v02_write(IP_4_REG, 177);
-	fm25v02_write(PORT_HIGH_REG, 136);
-	fm25v02_write(PORT_LOW_REG, 255);
+	osMutexWait(Fm25v02MutexHandle, osWaitForever);
+	fm25v02_write(2*LIGHTING_SWITCHING_REG, 0x00);
+	fm25v02_write(2*LIGHTING_SWITCHING_REG+1, 0x01);
+	fm25v02_write(2*ID_HIGH_REG, 0);
+	fm25v02_write(2*ID_HIGH_REG+1, 0);
+	fm25v02_write(2*ID_LOW_REG, 0);
+	fm25v02_write(2*ID_LOW_REG+1, 239);
+
+	fm25v02_write(2*IP_1_REG, 0);
+	fm25v02_write(2*IP_1_REG+1, 213);
+	fm25v02_write(2*IP_2_REG, 0);
+	fm25v02_write(2*IP_2_REG+1, 183);
+	fm25v02_write(2*IP_3_REG, 0);
+	fm25v02_write(2*IP_3_REG+1, 101);
+	fm25v02_write(2*IP_4_REG, 0);
+	fm25v02_write(2*IP_4_REG+1, 177);
+	fm25v02_write(2*PORT_HIGH_REG, 0);
+	fm25v02_write(2*PORT_HIGH_REG+1, 136);
+	fm25v02_write(2*PORT_LOW_REG, 0);
+	fm25v02_write(2*PORT_LOW_REG+1, 255);
 	osMutexRelease(Fm25v02MutexHandle);
 
 
-	/*
 	// сервер сигнализации резерв. Не определено 271
+	/*
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
 	fm25v02_write(ID_HIGH_REG, 1);
 	fm25v02_write(ID_LOW_REG, 15);
@@ -127,6 +137,7 @@ void ThreadM95Task(void const * argument)
 	osMutexRelease(Fm25v02MutexHandle);
 	*/
 
+	/*
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
 	fm25v02_write(MONTH_LIGHTING_OFF_REG, 11);
 	fm25v02_write(DAY_LIGHTING_OFF_REG, 24);
@@ -159,24 +170,49 @@ void ThreadM95Task(void const * argument)
 
 	fm25v02_write(LIGHT_CONTROL_REG, 56);
 	fm25v02_write(LIGHTING_STATUS_REG, 128);
-	//fm25v02_write(LIGHTING_ALARM_REG, 128);
-
 
 	osMutexRelease(Fm25v02MutexHandle);
+	*/
 
+	/*
+	osMutexWait(Fm25v02MutexHandle, osWaitForever);
+	fm25v02_write(2*VERSION_REG, 0x01);
+	fm25v02_write(2*VERSION_REG+1, 0x0E);
+	fm25v02_write(2*ID_HIGH_REG, 0x00);
+	fm25v02_write(2*ID_HIGH_REG+1, 0x01);
+	fm25v02_write(2*ID_LOW_REG, 0x00);
+	fm25v02_write(2*ID_LOW_REG+1, 0x0F);
+	fm25v02_write(2*IP_1_REG, 0);
+	fm25v02_write(2*IP_1_REG+1, 0);
+	fm25v02_write(2*IP_2_REG, 0);
+	fm25v02_write(2*IP_2_REG+1, 0);
+	fm25v02_write(2*IP_3_REG, 0);
+	fm25v02_write(2*IP_3_REG+1, 0);
+	fm25v02_write(2*IP_4_REG, 0);
+	fm25v02_write(2*IP_4_REG+1, 0);
+	fm25v02_write(2*PORT_HIGH_REG, 0);
+	fm25v02_write(2*PORT_HIGH_REG+1, 0);
+	fm25v02_write(2*PORT_LOW_REG, 0);
+	fm25v02_write(2*PORT_LOW_REG+1, 0);
+	fm25v02_write(2*POWER_ON_REG, 0);
+	fm25v02_write(2*POWER_ON_REG+1, 0);
+	fm25v02_write(2*STATUS_LOOP_REG, 0);
+	fm25v02_write(2*STATUS_LOOP_REG+1, 0);
+	osMutexRelease(Fm25v02MutexHandle);
+	*/
 
 	//---------------------------------------------------------------------------------------------------------
 
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
 
-	fm25v02_fast_write(VERSION_REG, &Version_L, 1); // записываем в память версию прошивки
+	//fm25v02_fast_write(VERSION_REG, &Version_L, 1); // записываем в память версию прошивки
 
-	fm25v02_fast_read(IP_1_REG, &ip1, 1); // читаем значение IP адреса сервера из памяти
-	fm25v02_fast_read(IP_2_REG, &ip2, 1);
-	fm25v02_fast_read(IP_3_REG, &ip3, 1);
-	fm25v02_fast_read(IP_4_REG, &ip4, 1);
-	fm25v02_fast_read(PORT_HIGH_REG, &port_high_reg, 1); // читаем значение старшего байта порта сервера
-	fm25v02_fast_read(PORT_LOW_REG, &port_low_reg, 1); // читаем занчение младшего байта порта сервера
+	fm25v02_fast_read(2*IP_1_REG+1, &ip1, 1); // читаем значение IP адреса сервера из памяти
+	fm25v02_fast_read(2*IP_2_REG+1, &ip2, 1);
+	fm25v02_fast_read(2*IP_3_REG+1, &ip3, 1);
+	fm25v02_fast_read(2*IP_4_REG+1, &ip4, 1);
+	fm25v02_fast_read(2*PORT_HIGH_REG+1, &port_high_reg, 1); // читаем значение старшего байта порта сервера
+	fm25v02_fast_read(2*PORT_LOW_REG+1, &port_low_reg, 1); // читаем занчение младшего байта порта сервера
 
 	osMutexRelease(Fm25v02MutexHandle);
 
@@ -234,7 +270,23 @@ void ThreadM95Task(void const * argument)
 				if(	AT_QCCID(&id2[0], &id1[0]) == AT_OK ) // читаем CCID сим-карты
 				{
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
-					fm25v02_fast_write(ICCID_NUMBER_REG1, &id2[0], 8); // записываем в регистры CCID сим-карты
+					//fm25v02_fast_write(ICCID_NUMBER_REG1, &id2[0], 8); // записываем в регистры CCID сим-карты
+					fm25v02_write(2*ICCID_NUMBER_REG1, 0x00);
+					fm25v02_write(2*ICCID_NUMBER_REG1+1, id2[0]);
+					fm25v02_write(2*ICCID_NUMBER_REG2, 0x00);
+					fm25v02_write(2*ICCID_NUMBER_REG2+1, id2[1]);
+					fm25v02_write(2*ICCID_NUMBER_REG3, 0x00);
+					fm25v02_write(2*ICCID_NUMBER_REG3+1, id2[2]);
+					fm25v02_write(2*ICCID_NUMBER_REG4, 0x00);
+					fm25v02_write(2*ICCID_NUMBER_REG4+1, id2[3]);
+					fm25v02_write(2*ICCID_NUMBER_REG5, 0x00);
+					fm25v02_write(2*ICCID_NUMBER_REG5+1, id2[4]);
+					fm25v02_write(2*ICCID_NUMBER_REG6, 0x00);
+					fm25v02_write(2*ICCID_NUMBER_REG6+1, id2[5]);
+					fm25v02_write(2*ICCID_NUMBER_REG7, 0x00);
+					fm25v02_write(2*ICCID_NUMBER_REG7+1, id2[6]);
+					fm25v02_write(2*ICCID_NUMBER_REG8, 0x00);
+					fm25v02_write(2*ICCID_NUMBER_REG8+1, id2[7]);
 					osMutexRelease(Fm25v02MutexHandle);
 				}
 
@@ -313,14 +365,16 @@ void ThreadM95Task(void const * argument)
 				if( AT_CSQ(&level) == AT_OK )
 				{
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
-					fm25v02_write(SIGNAL_LEVEL_REG, level);
+					fm25v02_write(2*SIGNAL_LEVEL_REG, 0x00);
+					fm25v02_write(2*SIGNAL_LEVEL_REG+1, level);
 					osMutexRelease(Fm25v02MutexHandle);
 				}
 				if( request_state == 0)
 				{
 					request_state = 1;
 					osMutexWait(Fm25v02MutexHandle, osWaitForever);
-					fm25v02_write(GPRS_CALL_REG, CALL_ON);
+					fm25v02_write(2*GPRS_CALL_REG, 0x00);
+					fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 					osMutexRelease(Fm25v02MutexHandle);
 				}
 

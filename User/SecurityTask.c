@@ -109,26 +109,30 @@ void ThreadSecurityTask(void const * argument)
 						}
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						fm25v02_read(2*ALARM_LOOP_REG+1, &alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						alarm_loop_reg_temp = alarm_loop_reg_temp|0x01;
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						fm25v02_write(2*ALARM_LOOP_REG, 0x00);
+						fm25v02_write(2*ALARM_LOOP_REG+1, alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+						fm25v02_write(2*SECURITY_STATUS_REG+1, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+						fm25v02_write(2*SYSTEM_STATUS_REG+1, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						fm25v02_write(2*GPRS_CALL_REG, 0x00);
+						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osThreadResume(EventWriteTaskHandle);
@@ -163,26 +167,30 @@ void ThreadSecurityTask(void const * argument)
 						}
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						fm25v02_read(2*ALARM_LOOP_REG+1, &alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						alarm_loop_reg_temp = alarm_loop_reg_temp|0x02;
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						fm25v02_write(2*ALARM_LOOP_REG, 0x00);
+						fm25v02_write(2*ALARM_LOOP_REG+1, alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+						fm25v02_write(2*SECURITY_STATUS_REG+1, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+						fm25v02_write(2*SYSTEM_STATUS_REG+1, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						fm25v02_write(2*GPRS_CALL_REG, 0x00);
+						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osThreadResume(EventWriteTaskHandle);
@@ -217,26 +225,30 @@ void ThreadSecurityTask(void const * argument)
 						}
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						fm25v02_read(2*ALARM_LOOP_REG+1, &alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						alarm_loop_reg_temp = alarm_loop_reg_temp|0x04;
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						fm25v02_write(2*ALARM_LOOP_REG, 0x00);
+						fm25v02_write(2*ALARM_LOOP_REG+1, alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+						fm25v02_write(2*SECURITY_STATUS_REG+1, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+						fm25v02_write(2*SYSTEM_STATUS_REG+1, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						fm25v02_write(2*GPRS_CALL_REG, 0x00);
+						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osThreadResume(EventWriteTaskHandle);
@@ -271,26 +283,30 @@ void ThreadSecurityTask(void const * argument)
 						}
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						fm25v02_read(2*ALARM_LOOP_REG+1, &alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						alarm_loop_reg_temp = alarm_loop_reg_temp|0x08;
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						fm25v02_write(2*ALARM_LOOP_REG, 0x00);
+						fm25v02_write(2*ALARM_LOOP_REG+1, alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+						fm25v02_write(2*SECURITY_STATUS_REG+1, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+						fm25v02_write(2*SYSTEM_STATUS_REG+1, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						fm25v02_write(2*GPRS_CALL_REG, 0x00);
+						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osThreadResume(EventWriteTaskHandle);
@@ -325,26 +341,30 @@ void ThreadSecurityTask(void const * argument)
 						}
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						fm25v02_read(2*ALARM_LOOP_REG+1, &alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						alarm_loop_reg_temp = alarm_loop_reg_temp|0x10;
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						fm25v02_write(2*ALARM_LOOP_REG, 0x00);
+						fm25v02_write(2*ALARM_LOOP_REG+1, alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+						fm25v02_write(2*SECURITY_STATUS_REG+1, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+						fm25v02_write(2*SYSTEM_STATUS_REG+1, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						fm25v02_write(2*GPRS_CALL_REG, 0x00);
+						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osThreadResume(EventWriteTaskHandle);
@@ -379,26 +399,30 @@ void ThreadSecurityTask(void const * argument)
 						}
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						fm25v02_read(2*ALARM_LOOP_REG+1, &alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						alarm_loop_reg_temp = alarm_loop_reg_temp|0x20;
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						fm25v02_write(2*ALARM_LOOP_REG, 0x00);
+						fm25v02_write(2*ALARM_LOOP_REG+1, alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+						fm25v02_write(2*SECURITY_STATUS_REG+1, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+						fm25v02_write(2*SYSTEM_STATUS_REG+1, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						fm25v02_write(2*GPRS_CALL_REG, 0x00);
+						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osThreadResume(EventWriteTaskHandle);
@@ -433,26 +457,30 @@ void ThreadSecurityTask(void const * argument)
 						}
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						fm25v02_read(2*ALARM_LOOP_REG+1, &alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						alarm_loop_reg_temp = alarm_loop_reg_temp|0x40;
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						fm25v02_write(2*ALARM_LOOP_REG, 0x00);
+						fm25v02_write(2*ALARM_LOOP_REG+1, alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+						fm25v02_write(2*SECURITY_STATUS_REG+1, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+						fm25v02_write(2*SYSTEM_STATUS_REG+1, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						fm25v02_write(2*GPRS_CALL_REG, 0x00);
+						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osThreadResume(EventWriteTaskHandle);
@@ -487,26 +515,30 @@ void ThreadSecurityTask(void const * argument)
 						}
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(ALARM_LOOP_REG, &alarm_loop_reg_temp);
+						fm25v02_read(2*ALARM_LOOP_REG+1, &alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						alarm_loop_reg_temp = alarm_loop_reg_temp|0x80;
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(ALARM_LOOP_REG, alarm_loop_reg_temp);
+						fm25v02_write(2*ALARM_LOOP_REG, 0x00);
+						fm25v02_write(2*ALARM_LOOP_REG+1, alarm_loop_reg_temp);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SECURITY_STATUS_REG, DOOR_OPEN_ALARM);
+						fm25v02_write(2*SECURITY_STATUS_REG, 0x00);
+						fm25v02_write(2*SECURITY_STATUS_REG+1, DOOR_OPEN_ALARM);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(SYSTEM_STATUS_REG, ALARM_STATE);
+						fm25v02_write(2*SYSTEM_STATUS_REG, 0x00);
+						fm25v02_write(2*SYSTEM_STATUS_REG+1, ALARM_STATE);
 						status_registers.system_status_reg = ALARM_STATE;
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_write(GPRS_CALL_REG, CALL_ON);
+						fm25v02_write(2*GPRS_CALL_REG, 0x00);
+						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
 
 						osThreadResume(EventWriteTaskHandle);
