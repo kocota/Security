@@ -63,22 +63,28 @@ void ThreadGetCurrentTask(void const * argument)
 					}
 					else if(overcurrent_phase_a_state==10)
 					{
-						overcurrent_phase_a_state++;
-						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(2*LIGHTING_ALARM_REG, &temp_h);
-						fm25v02_read(2*LIGHTING_ALARM_REG+1, &temp_l);
-						temp_l = temp_l|0x80;
-						fm25v02_write(2*LIGHTING_ALARM_REG+1, temp_l);
-						osMutexRelease(Fm25v02MutexHandle);
-						status_registers.lighting_alarm_reg = (((uint16_t)temp_h)<<8)|temp_l; // если превышение тока длилось 10 циклов, то выставляем бит превышения тока фазы А в регистр аварий
-						//LED6_ON();
+
+						overcurrent_phase_a_state = 0;
+
+						if( ((status_registers.lighting_alarm_reg)&0x0080) == 0x0000 ) // проверяем установлен ли бит превышения тока фазы А
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHTING_ALARM_REG, &temp_h);
+							fm25v02_read(2*LIGHTING_ALARM_REG+1, &temp_l);
+							temp_l = temp_l|0x80;
+							fm25v02_write(2*LIGHTING_ALARM_REG, temp_h);
+							fm25v02_write(2*LIGHTING_ALARM_REG+1, temp_l);
+							status_registers.lighting_alarm_reg = (((uint16_t)temp_h)<<8)|temp_l; // если превышение тока длилось 10 циклов, то выставляем бит превышения тока фазы А в регистр аварий
+							osMutexRelease(Fm25v02MutexHandle);
+						}
+
+
 					}
 
 				}
 				else
 				{
 					overcurrent_phase_a_state = 0;
-					//LED6_OFF();
 				}
 
 				if(status_registers.current_phase_b_reg > control_registers.max_current_phase_b) // проверяем если значение тока превысило максимальное значение тока фазы В
@@ -90,22 +96,25 @@ void ThreadGetCurrentTask(void const * argument)
 					}
 					else if(overcurrent_phase_b_state==10)
 					{
-						overcurrent_phase_b_state++;
-						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(2*LIGHTING_ALARM_REG, &temp_h);
-						fm25v02_read(2*LIGHTING_ALARM_REG+1, &temp_l);
-						temp_h = temp_h|0x01;
-						fm25v02_write(2*LIGHTING_ALARM_REG, temp_h);
-						osMutexRelease(Fm25v02MutexHandle);
-						status_registers.lighting_alarm_reg = (((uint16_t)temp_h)<<8)|temp_l; // если превышение тока длилось 10 циклов, то выставляем бит превышения тока фазы В в регистр аварий
-						//LED7_ON();
+						overcurrent_phase_b_state = 0;
+
+						if( ((status_registers.lighting_alarm_reg)&0x0100) == 0x0000 ) // проверяем установлен ли бит превышения тока фазы В
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHTING_ALARM_REG, &temp_h);
+							fm25v02_read(2*LIGHTING_ALARM_REG+1, &temp_l);
+							temp_h = temp_h|0x01;
+							fm25v02_write(2*LIGHTING_ALARM_REG, temp_h);
+							fm25v02_write(2*LIGHTING_ALARM_REG+1, temp_l);
+							status_registers.lighting_alarm_reg = (((uint16_t)temp_h)<<8)|temp_l; // если превышение тока длилось 10 циклов, то выставляем бит превышения тока фазы В в регистр аварий
+							osMutexRelease(Fm25v02MutexHandle);
+						}
 					}
 
 				}
 				else
 				{
 					overcurrent_phase_b_state = 0;
-					//LED7_OFF();
 				}
 
 				if(status_registers.current_phase_c_reg > control_registers.max_current_phase_c) // проверяем если значение тока превысило максимальное значение тока фазы С
@@ -117,22 +126,25 @@ void ThreadGetCurrentTask(void const * argument)
 					}
 					else if(overcurrent_phase_c_state==10)
 					{
-						overcurrent_phase_c_state++;
-						osMutexWait(Fm25v02MutexHandle, osWaitForever);
-						fm25v02_read(2*LIGHTING_ALARM_REG, &temp_h);
-						fm25v02_read(2*LIGHTING_ALARM_REG+1, &temp_l);
-						temp_h = temp_h|0x02;
-						fm25v02_write(2*LIGHTING_ALARM_REG, temp_h);
-						osMutexRelease(Fm25v02MutexHandle);
-						status_registers.lighting_alarm_reg = (((uint16_t)temp_h)<<8)|temp_l; // если превышение тока длилось 10 циклов, то выставляем бит превышения тока фазы А в регистр аварий
-						//LED7_ON();
+						overcurrent_phase_c_state = 0;
+
+						if( ((status_registers.lighting_alarm_reg)&0x0200) == 0x0000 ) // проверяем установлен ли бит превышения тока фазы С
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHTING_ALARM_REG, &temp_h);
+							fm25v02_read(2*LIGHTING_ALARM_REG+1, &temp_l);
+							temp_h = temp_h|0x02;
+							fm25v02_write(2*LIGHTING_ALARM_REG, temp_h);
+							fm25v02_write(2*LIGHTING_ALARM_REG+1, temp_l);
+							status_registers.lighting_alarm_reg = (((uint16_t)temp_h)<<8)|temp_l; // если превышение тока длилось 10 циклов, то выставляем бит превышения тока фазы А в регистр аварий
+							osMutexRelease(Fm25v02MutexHandle);
+						}
 					}
 
 				}
 				else
 				{
 					overcurrent_phase_c_state = 0;
-					//LED7_OFF();
 				}
 
 
