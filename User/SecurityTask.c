@@ -63,7 +63,8 @@ void ThreadSecurityTask(void const * argument)
 		if(control_registers.lighting_switching_reg == LIGHTING_ON) // если функция освещения включена
 		{
 
-			if( HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == GPIO_PIN_RESET ) // если нет наличия фазы А1
+			//if( HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == GPIO_PIN_RESET ) // если нет наличия фазы А1
+			if( HAL_GPIO_ReadPin(GPIOH, GPIO_PIN_4) == GPIO_PIN_RESET ) // если нет наличия фазы А1
 			{
 				if(phase_a1_alarm_state<100)
 				{
@@ -85,10 +86,10 @@ void ThreadSecurityTask(void const * argument)
 					}
 				}
 
-				if(phase_a1_off_state<150)
+				if(phase_a1_off_state<50)
 				{
 					phase_a1_off_state++;
-					if(phase_a1_off_state == 150)
+					if(phase_a1_off_state == 50)
 					{
 						phase_a1_off_state = 0;
 						if( ((status_registers.lighting_status_reg)&0x0001) == 0x0001 )
@@ -105,16 +106,18 @@ void ThreadSecurityTask(void const * argument)
 				}
 
 			}
-			else if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == GPIO_PIN_SET) // если есть наличие фазы А1
+			//else if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == GPIO_PIN_SET) // если есть наличие фазы А1
+			else if(HAL_GPIO_ReadPin(GPIOH, GPIO_PIN_4) == GPIO_PIN_SET) // если есть наличие фазы А1
 			{
 				phase_a1_alarm_state = 0;
+				phase_a1_off_state = 0;
 
-				if(phase_a1_on_state<100)
+				if(phase_a1_on_state<10)
 				{
 					phase_a1_on_state++;
-					if(phase_a1_on_state==100)
+					if(phase_a1_on_state==10)
 					{
-						phase_a1_off_state = 0;
+						//phase_a1_off_state = 0;
 						phase_a1_on_state = 0; // выставляем среднее значение между 0 и 10
 
 						if( ((status_registers.lighting_status_reg)&0x0001) == 0x0000 )
@@ -132,11 +135,12 @@ void ThreadSecurityTask(void const * argument)
 				}
 
 			}
-			if( ((control_registers.light_control_reg)&0x0010) == 0x0010 ) // если контроль второй линии включен
-			{
+			//if( ((control_registers.light_control_reg)&0x0010) == 0x0010 ) // если контроль второй линии включен
+			//{
 			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_11) == GPIO_PIN_RESET ) // если нет наличия фазы А2
 			{
-
+				if( ((control_registers.light_control_reg)&0x0010) == 0x0010 ) // если контроль второй линии включен
+				{
 				if(phase_a2_alarm_state<100)
 				{
 					phase_a2_alarm_state++;
@@ -156,11 +160,12 @@ void ThreadSecurityTask(void const * argument)
 
 					}
 				}
+				}
 
-				if(phase_a2_off_state<150)
+				if(phase_a2_off_state<50)
 				{
 					phase_a2_off_state++;
-					if(phase_a2_off_state == 150)
+					if(phase_a2_off_state == 50)
 					{
 						phase_a2_off_state = 0;
 						if( ((status_registers.lighting_status_reg)&0x0008) == 0x0008 )
@@ -181,13 +186,14 @@ void ThreadSecurityTask(void const * argument)
 			{
 
 				phase_a2_alarm_state = 0;
+				phase_a2_off_state = 0;
 
-				if(phase_a2_on_state<100)
+				if(phase_a2_on_state<10)
 				{
 					phase_a2_on_state++;
-					if(phase_a2_on_state==100)
+					if(phase_a2_on_state==10)
 					{
-						phase_a2_off_state = 0;
+						//phase_a2_off_state = 0;
 						phase_a2_on_state = 0; // выставляем среднее значение между 0 и 10
 
 						if( ((status_registers.lighting_status_reg)&0x0008) == 0x0000 )
@@ -206,7 +212,8 @@ void ThreadSecurityTask(void const * argument)
 
 			}
 
-			}
+			//}
+			/*
 			else
 			{
 				osMutexWait(Fm25v02MutexHandle, osWaitForever);
@@ -219,6 +226,7 @@ void ThreadSecurityTask(void const * argument)
 				LED7_OFF();
 				LED8_OFF();
 			}
+			*/
 
 			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_12) == GPIO_PIN_RESET ) // если нет наличия фазы В1
 			{
@@ -242,10 +250,10 @@ void ThreadSecurityTask(void const * argument)
 					}
 				}
 
-				if(phase_b1_off_state<150)
+				if(phase_b1_off_state<50)
 				{
 					phase_b1_off_state++;
-					if(phase_b1_off_state == 150)
+					if(phase_b1_off_state == 50)
 					{
 						phase_b1_off_state = 0;
 						if( ((status_registers.lighting_status_reg)&0x0002) == 0x0002 )
@@ -264,13 +272,14 @@ void ThreadSecurityTask(void const * argument)
 			else if(HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_12) == GPIO_PIN_SET) // если есть наличие фазы В1
 			{
 				phase_b1_alarm_state = 0;
+				phase_b1_off_state = 0;
 
-				if(phase_b1_on_state<100)
+				if(phase_b1_on_state<10)
 				{
 					phase_b1_on_state++;
-					if(phase_b1_on_state==100)
+					if(phase_b1_on_state==10)
 					{
-						phase_b1_off_state = 0;
+						//phase_b1_off_state = 0;
 						phase_b1_on_state = 0; // выставляем среднее значение между 0 и 10
 
 						if( ((status_registers.lighting_status_reg)&0x0002) == 0x0000 )
@@ -288,10 +297,12 @@ void ThreadSecurityTask(void const * argument)
 				}
 			}
 
-			if( ((control_registers.light_control_reg)&0x0010) == 0x0010 ) // если контроль второй линии включен
-			{
+			//if( ((control_registers.light_control_reg)&0x0010) == 0x0010 ) // если контроль второй линии включен
+			//{
 			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_13) == GPIO_PIN_RESET ) // если нет наличия фазы В2
 			{
+				if( ((control_registers.light_control_reg)&0x0010) == 0x0010 ) // если контроль второй линии включен
+				{
 				if(phase_b2_alarm_state<100)
 				{
 					phase_b2_alarm_state++;
@@ -311,11 +322,12 @@ void ThreadSecurityTask(void const * argument)
 
 					}
 				}
+				}
 
-				if(phase_b2_off_state<150)
+				if(phase_b2_off_state<50)
 				{
 					phase_b2_off_state++;
-					if(phase_b2_off_state == 150)
+					if(phase_b2_off_state == 50)
 					{
 						phase_b2_off_state = 0;
 						if( ((status_registers.lighting_status_reg)&0x0010) == 0x0010 )
@@ -334,13 +346,14 @@ void ThreadSecurityTask(void const * argument)
 			else if(HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_13) == GPIO_PIN_SET) // если есть наличие фазы В2
 			{
 				phase_b2_alarm_state = 0;
+				phase_b2_off_state = 0;
 
-				if(phase_b2_on_state<100)
+				if(phase_b2_on_state<10)
 				{
 					phase_b2_on_state++;
-					if(phase_b2_on_state==100)
+					if(phase_b2_on_state==10)
 					{
-						phase_b2_off_state = 0;
+						//phase_b2_off_state = 0;
 						phase_b2_on_state = 0; // выставляем среднее значение между 0 и 10
 
 						if( ((status_registers.lighting_status_reg)&0x0010) == 0x0000 )
@@ -358,7 +371,7 @@ void ThreadSecurityTask(void const * argument)
 				}
 			}
 
-			}
+			//}
 
 			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_14) == GPIO_PIN_RESET ) // если нет наличия фазы С1
 			{
@@ -382,10 +395,10 @@ void ThreadSecurityTask(void const * argument)
 					}
 				}
 
-				if(phase_c1_off_state<150)
+				if(phase_c1_off_state<50)
 				{
 					phase_c1_off_state++;
-					if(phase_c1_off_state == 150)
+					if(phase_c1_off_state == 50)
 					{
 						phase_c1_off_state = 0;
 						if( ((status_registers.lighting_status_reg)&0x0004) == 0x0004 )
@@ -404,13 +417,14 @@ void ThreadSecurityTask(void const * argument)
 			else if(HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_14) == GPIO_PIN_SET) // если есть наличие фазы С1
 			{
 				phase_c1_alarm_state = 0;
+				phase_c1_off_state = 0;
 
-				if(phase_c1_on_state<100)
+				if(phase_c1_on_state<10)
 				{
 					phase_c1_on_state++;
-					if(phase_c1_on_state==100)
+					if(phase_c1_on_state==10)
 					{
-						phase_c1_off_state = 0;
+						//phase_c1_off_state = 0;
 						phase_c1_on_state = 0; // выставляем среднее значение между 0 и 10
 
 						if( ((status_registers.lighting_status_reg)&0x0004) == 0x0000 )
@@ -428,10 +442,12 @@ void ThreadSecurityTask(void const * argument)
 				}
 			}
 
-			if( ((control_registers.light_control_reg)&0x0010) == 0x0010 ) // если контроль второй линии включен
-			{
+			//if( ((control_registers.light_control_reg)&0x0010) == 0x0010 ) // если контроль второй линии включен
+			//{
 			if( HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_15) == GPIO_PIN_RESET ) // если нет наличия фазы С2
 			{
+				if( ((control_registers.light_control_reg)&0x0010) == 0x0010 ) // если контроль второй линии включен
+				{
 				if(phase_c2_alarm_state<100)
 				{
 					phase_c2_alarm_state++;
@@ -451,11 +467,12 @@ void ThreadSecurityTask(void const * argument)
 
 					}
 				}
+				}
 
-				if(phase_c2_off_state<150)
+				if(phase_c2_off_state<50)
 				{
 					phase_c2_off_state++;
-					if(phase_c2_off_state == 150)
+					if(phase_c2_off_state == 50)
 					{
 						phase_c2_off_state = 0;
 						if( ((status_registers.lighting_status_reg)&0x0020) == 0x0020 )
@@ -474,13 +491,14 @@ void ThreadSecurityTask(void const * argument)
 			else if(HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_15) == GPIO_PIN_SET) // если нет наличия фазы С2
 			{
 				phase_c2_alarm_state = 0;
+				phase_c2_off_state = 0;
 
-				if(phase_c2_on_state<100)
+				if(phase_c2_on_state<10)
 				{
 					phase_c2_on_state++;
-					if(phase_c2_on_state==100)
+					if(phase_c2_on_state==10)
 					{
-						phase_c2_off_state = 0;
+						//phase_c2_off_state = 0;
 						phase_c2_on_state = 0; // выставляем среднее значение между 0 и 10
 
 						if( ((status_registers.lighting_status_reg)&0x0020) == 0x0000 )
@@ -498,7 +516,7 @@ void ThreadSecurityTask(void const * argument)
 				}
 			}
 
-			}
+			//}
 
 		}
 

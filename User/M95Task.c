@@ -100,8 +100,14 @@ void ThreadM95Task(void const * argument)
 	// сервер освещения Главный, неопределено 239
 
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
+	fm25v02_write(2*VERSION_REG, 0x01);
+	fm25v02_write(2*VERSION_REG+1, 0x0E);
 	fm25v02_write(2*LIGHTING_SWITCHING_REG, 0x00);
 	fm25v02_write(2*LIGHTING_SWITCHING_REG+1, 0x01);
+	fm25v02_write(2*POWER_ON_REG, 0x00);
+	fm25v02_write(2*POWER_ON_REG+1, 0x00);
+	fm25v02_write(2*POWER_ON_LIGHTING_REG, 0x00);
+	fm25v02_write(2*POWER_ON_LIGHTING_REG+1, 0x00);
 	fm25v02_write(2*ID_HIGH_REG, 0);
 	fm25v02_write(2*ID_HIGH_REG+1, 0);
 	fm25v02_write(2*ID_LOW_REG, 0);
@@ -137,42 +143,67 @@ void ThreadM95Task(void const * argument)
 	osMutexRelease(Fm25v02MutexHandle);
 	*/
 
-	/*
+
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
-	fm25v02_write(MONTH_LIGHTING_OFF_REG, 11);
-	fm25v02_write(DAY_LIGHTING_OFF_REG, 24);
-	fm25v02_write(HOUR_LIGHTING_OFF_REG, 14);
-	fm25v02_write(MINUTE_LIGHTING_OFF_REG, 52);
+	fm25v02_write(2*MONTH_LIGHTING_OFF_REG, 0);
+	fm25v02_write(2*MONTH_LIGHTING_OFF_REG+1, 11);
+	fm25v02_write(2*DAY_LIGHTING_OFF_REG, 0);
+	fm25v02_write(2*DAY_LIGHTING_OFF_REG+1, 24);
+	fm25v02_write(2*HOUR_LIGHTING_OFF_REG, 0);
+	fm25v02_write(2*HOUR_LIGHTING_OFF_REG+1, 14);
+	fm25v02_write(2*MINUTE_LIGHTING_OFF_REG, 0);
+	fm25v02_write(2*MINUTE_LIGHTING_OFF_REG+1, 52);
 
-	fm25v02_write(MONTH_LIGHTING_ON_REG, 11);
-	fm25v02_write(DAY_LIGHTING_ON_REG, 24);
-	fm25v02_write(HOUR_LIGHTING_ON_REG, 14);
-	fm25v02_write(MINUTE_LIGHTING_ON_REG, 54);
+	fm25v02_write(2*MONTH_LIGHTING_ON_REG, 0);
+	fm25v02_write(2*MONTH_LIGHTING_ON_REG+1, 11);
+	fm25v02_write(2*DAY_LIGHTING_ON_REG, 0);
+	fm25v02_write(2*DAY_LIGHTING_ON_REG+1, 24);
+	fm25v02_write(2*HOUR_LIGHTING_ON_REG, 0);
+	fm25v02_write(2*HOUR_LIGHTING_ON_REG+1, 14);
+	fm25v02_write(2*MINUTE_LIGHTING_ON_REG, 0);
+	fm25v02_write(2*MINUTE_LIGHTING_ON_REG+1, 54);
 
-	fm25v02_write(CE_303_CURRENT_A_REG, 11);
-	fm25v02_write(CE_303_CURRENT_B_REG, 12);
-	fm25v02_write(CE_303_CURRENT_C_REG, 13);
-	fm25v02_write(CE_303_CURRENT_MIL_A_REG, 21);
-	fm25v02_write(CE_303_CURRENT_MIL_B_REG, 22);
-	fm25v02_write(CE_303_CURRENT_MIL_C_REG, 23);
-	fm25v02_write(CE_303_VOLT_A_REG, 21);
-	fm25v02_write(CE_303_VOLT_B_REG, 22);
-	fm25v02_write(CE_303_VOLT_C_REG, 23);
-	fm25v02_write(CE_303_VOLT_MIL_A_REG, 31);
-	fm25v02_write(CE_303_VOLT_MIL_B_REG, 32);
-	fm25v02_write(CE_303_VOLT_MIL_C_REG, 33);
-	fm25v02_write(CE_303_POWER_A_REG, 31);
-	fm25v02_write(CE_303_POWER_B_REG, 32);
-	fm25v02_write(CE_303_POWER_C_REG, 33);
-	fm25v02_write(CE_303_POWER_MIL_A_REG, 41);
-	fm25v02_write(CE_303_POWER_MIL_B_REG, 42);
-	fm25v02_write(CE_303_POWER_MIL_C_REG, 43);
+	fm25v02_write(2*CE_303_CURRENT_A_REG, 0);
+	fm25v02_write(2*CE_303_CURRENT_A_REG+1, 11);
+	fm25v02_write(2*CE_303_CURRENT_B_REG, 0);
+	fm25v02_write(2*CE_303_CURRENT_B_REG+1, 12);
+	fm25v02_write(2*CE_303_CURRENT_C_REG, 0);
+	fm25v02_write(2*CE_303_CURRENT_C_REG+1, 13);
+	fm25v02_write(2*CE_303_CURRENT_MIL_A_REG, 0);
+	fm25v02_write(2*CE_303_CURRENT_MIL_A_REG+1, 21);
+	fm25v02_write(2*CE_303_CURRENT_MIL_B_REG, 0);
+	fm25v02_write(2*CE_303_CURRENT_MIL_B_REG+1, 22);
+	fm25v02_write(2*CE_303_CURRENT_MIL_C_REG, 0);
+	fm25v02_write(2*CE_303_CURRENT_MIL_C_REG+1, 23);
+	fm25v02_write(2*CE_303_VOLT_A_REG, 0);
+	fm25v02_write(2*CE_303_VOLT_A_REG+1, 21);
+	fm25v02_write(2*CE_303_VOLT_B_REG, 0);
+	fm25v02_write(2*CE_303_VOLT_B_REG+1, 22);
+	fm25v02_write(2*CE_303_VOLT_C_REG, 0);
+	fm25v02_write(2*CE_303_VOLT_C_REG+1, 23);
+	fm25v02_write(2*CE_303_VOLT_MIL_A_REG, 0);
+	fm25v02_write(2*CE_303_VOLT_MIL_A_REG+1, 31);
+	fm25v02_write(2*CE_303_VOLT_MIL_B_REG, 0);
+	fm25v02_write(2*CE_303_VOLT_MIL_B_REG+1, 32);
+	fm25v02_write(2*CE_303_VOLT_MIL_C_REG, 0);
+	fm25v02_write(2*CE_303_VOLT_MIL_C_REG+1, 33);
+	fm25v02_write(2*CE_303_POWER_A_REG, 0);
+	fm25v02_write(2*CE_303_POWER_A_REG+1, 31);
+	fm25v02_write(2*CE_303_POWER_B_REG, 0);
+	fm25v02_write(2*CE_303_POWER_B_REG+1, 32);
+	fm25v02_write(2*CE_303_POWER_C_REG, 0);
+	fm25v02_write(2*CE_303_POWER_C_REG+1, 33);
+	fm25v02_write(2*CE_303_POWER_MIL_A_REG, 0);
+	fm25v02_write(2*CE_303_POWER_MIL_A_REG+1, 41);
+	fm25v02_write(2*CE_303_POWER_MIL_B_REG, 0);
+	fm25v02_write(2*CE_303_POWER_MIL_B_REG+1, 42);
+	fm25v02_write(2*CE_303_POWER_MIL_C_REG, 0);
+	fm25v02_write(2*CE_303_POWER_MIL_C_REG+1, 43);
 
-	fm25v02_write(LIGHT_CONTROL_REG, 56);
-	fm25v02_write(LIGHTING_STATUS_REG, 128);
+
 
 	osMutexRelease(Fm25v02MutexHandle);
-	*/
+
 
 	/*
 	osMutexWait(Fm25v02MutexHandle, osWaitForever);
