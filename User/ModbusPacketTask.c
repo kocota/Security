@@ -14,6 +14,7 @@ extern uint8_t modbus_buffer[20][256];
 extern uint8_t modbus_packet_number;
 extern uint8_t modbus_packet_number1;
 extern uint8_t Version_H;
+extern control_register_struct control_registers;
 
 uint8_t buf_out[256];
 uint8_t buf_out1[256];
@@ -21,9 +22,15 @@ uint8_t level;
 uint16_t modbus_size;
 uint16_t modbus_address;
 
+volatile uint8_t phase_a_control_state = 0; // переменная статуса включения фазы А
+volatile uint8_t phase_b_control_state = 0; // переменная статуса включения фазы В
+volatile uint8_t phase_c_control_state = 0; // переменная статуса включения фазы С
+
 
 void ThreadModbusPacketTask(void const * argument)
 {
+	uint8_t temp_h1;
+	uint8_t temp_l1;
 
 	osSemaphoreWait(ModbusPacketReceiveHandle, osWaitForever); // обнуляем семафор, при создании семафора его значение равно 1
 
@@ -234,6 +241,16 @@ void ThreadModbusPacketTask(void const * argument)
 						fm25v02_write(2*GPRS_CALL_REG, 0x00);
 						fm25v02_write(2*GPRS_CALL_REG+1, CALL_ON);
 						osMutexRelease(Fm25v02MutexHandle);
+					}
+
+					if( modbus_address == LIGHT_CONTROL_REG)
+					{
+						osMutexWait(Fm25v02MutexHandle, osWaitForever);
+						fm25v02_read(2*LIGHT_CONTROL_REG, &temp_h1);
+						fm25v02_read(2*LIGHT_CONTROL_REG+1, &temp_l1);
+						control_registers.light_control_reg = (((uint16_t)temp_h1)<<8)|temp_l1;
+						osMutexRelease(Fm25v02MutexHandle);
+
 					}
 
 				}

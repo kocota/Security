@@ -15,6 +15,10 @@ extern osMutexId Fm25v02MutexHandle;
 extern status_register_struct status_registers;
 extern control_register_struct control_registers;
 
+extern volatile uint8_t phase_a_control_state; // переменная статуса включения фазы А
+extern volatile uint8_t phase_b_control_state; // переменная статуса включения фазы В
+extern volatile uint8_t phase_c_control_state; // переменная статуса включения фазы С
+
 RTC_TimeTypeDef current_time;
 RTC_DateTypeDef current_date;
 RTC_TimeTypeDef set_time;
@@ -30,8 +34,36 @@ volatile uint8_t security_state_temp = 0;
 
 void ThreadMainTask(void const * argument)
 {
+	uint8_t temp;
 
-	osThreadSuspend(MainTaskHandle); // ждем пока не будут вычитаны регистры
+	uint8_t temp_time_on_1_hour;
+	uint8_t temp_time_on_1_minute;
+	uint8_t temp_time_on_2_hour;
+	uint8_t temp_time_on_2_minute;
+	uint8_t temp_time_on_3_hour;
+	uint8_t temp_time_on_3_minute;
+	uint8_t temp_time_on_4_hour;
+	uint8_t temp_time_on_4_minute;
+	uint8_t temp_time_off_1_hour;
+	uint8_t temp_time_off_1_minute;
+	uint8_t temp_time_off_2_hour;
+	uint8_t temp_time_off_2_minute;
+	uint8_t temp_time_off_3_hour;
+	uint8_t temp_time_off_3_minute;
+	uint8_t temp_time_off_4_hour;
+	uint8_t temp_time_off_4_minute;
+
+
+	volatile uint8_t phase_temp1=0;
+
+	volatile uint8_t phase_a_on_state=0;
+	volatile uint8_t phase_b_on_state=0;
+	volatile uint8_t phase_c_on_state=0;
+	volatile uint8_t phase_a_off_state=0;
+	volatile uint8_t phase_b_off_state=0;
+	volatile uint8_t phase_c_off_state=0;
+
+	osThreadSuspend(MainTaskHandle); // ждем пока не будут вычитаны регистры и не получен статус фаз А1,А2,В1,В2,С1,С2
 
 
 	for(;;)
@@ -235,6 +267,251 @@ void ThreadMainTask(void const * argument)
 
 				osMutexRelease(Fm25v02MutexHandle);
 
+				status_registers.time_current_hour_reg = current_time.Hours;
+				status_registers.time_current_minute_reg = current_time.Minutes;
+				status_registers.time_current_second_reg = current_time.Seconds;
+				status_registers.time_current_day_reg = current_date.Date;
+				status_registers.time_current_month_reg = current_date.Month;
+				status_registers.time_current_year_reg = current_date.Year;
+				status_registers.time_current_weekday_reg = current_date.WeekDay;
+
+				if( ((control_registers.light_control_reg)&0x0020) == 0x0020 ) // если включено управление по расписанию
+				{
+
+					osMutexWait(Fm25v02MutexHandle, osWaitForever);
+
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+0)+1, &temp_time_on_1_hour);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+1)+1, &temp_time_on_1_minute);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+2)+1, &temp_time_on_2_hour);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+3)+1, &temp_time_on_2_minute);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+4)+1, &temp_time_on_3_hour);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+5)+1, &temp_time_on_3_minute);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+6)+1, &temp_time_on_4_hour);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+7)+1, &temp_time_on_4_minute);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+8)+1, &temp_time_off_1_hour);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+9)+1, &temp_time_off_1_minute);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+10)+1, &temp_time_off_2_hour);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+11)+1, &temp_time_off_2_minute);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+12)+1, &temp_time_off_3_hour);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+13)+1, &temp_time_off_3_minute);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+14)+1, &temp_time_off_4_hour);
+					fm25v02_read( 2*(0x28C0+(((current_date.Month)-1)*31)+(current_date.Date)-1+15)+1, &temp_time_off_4_minute);
+
+					osMutexRelease(Fm25v02MutexHandle);
+
+					if( (((control_registers.light_control_reg)&0x0001)==0x0000) || (((control_registers.light_control_reg)&0x0002)==0x0000) || (((control_registers.light_control_reg)&0x0004)==0x0000) )
+					{
+
+						if( (temp_time_on_1_hour==current_time.Hours)&&(temp_time_on_1_minute==current_time.Minutes)&&((temp_time_on_1_hour!=temp_time_off_1_hour)||(temp_time_on_1_minute!=temp_time_off_1_minute)) )
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHT_CONTROL_REG+1, &temp);
+							temp = temp|0x07;
+							fm25v02_write(2*LIGHT_CONTROL_REG+1, temp);
+							control_registers.light_control_reg = control_registers.light_control_reg|0x0007;
+
+							fm25v02_write(2*MONTH_LIGHTING_ON_REG, 0x00);
+							temp = current_date.Month;
+							fm25v02_write(2*MONTH_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*DAY_LIGHTING_ON_REG, 0x00);
+							temp = current_date.Date;
+							fm25v02_write(2*DAY_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*HOUR_LIGHTING_ON_REG+1, 0x00);
+							temp = current_time.Hours;
+							fm25v02_write(2*HOUR_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*MINUTE_LIGHTING_ON_REG, 0x00);
+							temp = current_time.Minutes;
+							fm25v02_write(2*MINUTE_LIGHTING_ON_REG+1, temp);
+
+							osMutexRelease(Fm25v02MutexHandle);
+
+							//LED8_TOGGLE();
+						}
+
+						if( (temp_time_on_2_hour==current_time.Hours)&&(temp_time_on_2_minute==current_time.Minutes)&&((temp_time_on_2_hour!=temp_time_off_2_hour)||(temp_time_on_2_minute!=temp_time_off_2_minute)) )
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHT_CONTROL_REG+1, &temp);
+							temp = temp|0x07;
+							fm25v02_write(2*LIGHT_CONTROL_REG+1, temp);
+							control_registers.light_control_reg = control_registers.light_control_reg|0x0007;
+
+							fm25v02_write(2*MONTH_LIGHTING_ON_REG, 0x00);
+							temp = current_date.Month;
+							fm25v02_write(2*MONTH_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*DAY_LIGHTING_ON_REG, 0x00);
+							temp = current_date.Date;
+							fm25v02_write(2*DAY_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*HOUR_LIGHTING_ON_REG+1, 0x00);
+							temp = current_time.Hours;
+							fm25v02_write(2*HOUR_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*MINUTE_LIGHTING_ON_REG, 0x00);
+							temp = current_time.Minutes;
+							fm25v02_write(2*MINUTE_LIGHTING_ON_REG+1, temp);
+
+							osMutexRelease(Fm25v02MutexHandle);
+
+							//LED7_TOGGLE();
+						}
+
+						if( (temp_time_on_3_hour==current_time.Hours)&&(temp_time_on_3_minute==current_time.Minutes)&&((temp_time_on_3_hour!=temp_time_off_3_hour)||(temp_time_on_3_minute!=temp_time_off_3_minute)) )
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHT_CONTROL_REG+1, &temp);
+							temp = temp|0x07;
+							fm25v02_write(2*LIGHT_CONTROL_REG+1, temp);
+							control_registers.light_control_reg = control_registers.light_control_reg|0x0007;
+
+							fm25v02_write(2*MONTH_LIGHTING_ON_REG, 0x00);
+							temp = current_date.Month;
+							fm25v02_write(2*MONTH_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*DAY_LIGHTING_ON_REG, 0x00);
+							temp = current_date.Date;
+							fm25v02_write(2*DAY_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*HOUR_LIGHTING_ON_REG+1, 0x00);
+							temp = current_time.Hours;
+							fm25v02_write(2*HOUR_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*MINUTE_LIGHTING_ON_REG, 0x00);
+							temp = current_time.Minutes;
+							fm25v02_write(2*MINUTE_LIGHTING_ON_REG+1, temp);
+
+							osMutexRelease(Fm25v02MutexHandle);
+
+							//LED6_TOGGLE();
+						}
+
+						if( (temp_time_on_4_hour==current_time.Hours)&&(temp_time_on_4_minute==current_time.Minutes)&&((temp_time_on_4_hour!=temp_time_off_4_hour)||(temp_time_on_4_minute!=temp_time_off_4_minute)) )
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHT_CONTROL_REG+1, &temp);
+							temp = temp|0x07;
+							fm25v02_write(2*LIGHT_CONTROL_REG+1, temp);
+							control_registers.light_control_reg = control_registers.light_control_reg|0x0007;
+
+							fm25v02_write(2*MONTH_LIGHTING_ON_REG, 0x00);
+							temp = current_date.Month;
+							fm25v02_write(2*MONTH_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*DAY_LIGHTING_ON_REG, 0x00);
+							temp = current_date.Date;
+							fm25v02_write(2*DAY_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*HOUR_LIGHTING_ON_REG+1, 0x00);
+							temp = current_time.Hours;
+							fm25v02_write(2*HOUR_LIGHTING_ON_REG+1, temp);
+							fm25v02_write(2*MINUTE_LIGHTING_ON_REG, 0x00);
+							temp = current_time.Minutes;
+							fm25v02_write(2*MINUTE_LIGHTING_ON_REG+1, temp);
+
+							osMutexRelease(Fm25v02MutexHandle);
+
+							//LED5_TOGGLE();
+						}
+
+
+					}
+
+					else if( (((control_registers.light_control_reg)&0x0001)==0x0001) || (((control_registers.light_control_reg)&0x0002)==0x0002) || (((control_registers.light_control_reg)&0x0004)==0x0004) )
+					{
+
+						if( (temp_time_off_1_hour==current_time.Hours)&&(temp_time_off_1_minute==current_time.Minutes)&&((temp_time_on_1_hour!=temp_time_off_1_hour)||(temp_time_on_1_minute!=temp_time_off_1_minute)) )
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHT_CONTROL_REG+1, &temp);
+							temp = temp&0xF8;
+							fm25v02_write(2*LIGHT_CONTROL_REG+1, temp);
+							control_registers.light_control_reg = control_registers.light_control_reg&0xFFF8;
+
+							fm25v02_write(2*MONTH_LIGHTING_OFF_REG, 0x00);
+							temp = current_date.Month;
+							fm25v02_write(2*MONTH_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*DAY_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_date.Date;
+							fm25v02_write(2*DAY_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*HOUR_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_time.Hours;
+							fm25v02_write(2*HOUR_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*MINUTE_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_time.Minutes;
+							fm25v02_write(2*MINUTE_LIGHTING_OFF_REG+1, temp);
+
+							osMutexRelease(Fm25v02MutexHandle);
+						}
+
+						if( (temp_time_off_2_hour==current_time.Hours)&&(temp_time_off_2_minute==current_time.Minutes)&&((temp_time_on_2_hour!=temp_time_off_2_hour)||(temp_time_on_2_minute!=temp_time_off_2_minute)) )
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHT_CONTROL_REG+1, &temp);
+							temp = temp&0xF8;
+							fm25v02_write(2*LIGHT_CONTROL_REG+1, temp);
+							control_registers.light_control_reg = control_registers.light_control_reg&0xFFF8;
+
+							fm25v02_write(2*MONTH_LIGHTING_OFF_REG, 0x00);
+							temp = current_date.Month;
+							fm25v02_write(2*MONTH_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*DAY_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_date.Date;
+							fm25v02_write(2*DAY_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*HOUR_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_time.Hours;
+							fm25v02_write(2*HOUR_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*MINUTE_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_time.Minutes;
+							fm25v02_write(2*MINUTE_LIGHTING_OFF_REG+1, temp);
+
+							osMutexRelease(Fm25v02MutexHandle);
+						}
+
+						if( (temp_time_off_3_hour==current_time.Hours)&&(temp_time_off_3_minute==current_time.Minutes)&&((temp_time_on_3_hour!=temp_time_off_3_hour)||(temp_time_on_3_minute!=temp_time_off_3_minute)) )
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHT_CONTROL_REG+1, &temp);
+							temp = temp&0xF8;
+							fm25v02_write(2*LIGHT_CONTROL_REG+1, temp);
+							control_registers.light_control_reg = control_registers.light_control_reg&0xFFF8;
+
+							fm25v02_write(2*MONTH_LIGHTING_OFF_REG, 0x00);
+							temp = current_date.Month;
+							fm25v02_write(2*MONTH_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*DAY_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_date.Date;
+							fm25v02_write(2*DAY_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*HOUR_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_time.Hours;
+							fm25v02_write(2*HOUR_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*MINUTE_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_time.Minutes;
+							fm25v02_write(2*MINUTE_LIGHTING_OFF_REG+1, temp);
+
+							osMutexRelease(Fm25v02MutexHandle);
+						}
+
+						if( (temp_time_off_4_hour==current_time.Hours)&&(temp_time_off_4_minute==current_time.Minutes)&&((temp_time_on_4_hour!=temp_time_off_4_hour)||(temp_time_on_4_minute!=temp_time_off_4_minute)) )
+						{
+							osMutexWait(Fm25v02MutexHandle, osWaitForever);
+							fm25v02_read(2*LIGHT_CONTROL_REG+1, &temp);
+							temp = temp&0xF8;
+							fm25v02_write(2*LIGHT_CONTROL_REG+1, temp);
+							control_registers.light_control_reg = control_registers.light_control_reg&0xFFF8;
+
+							fm25v02_write(2*MONTH_LIGHTING_OFF_REG, 0x00);
+							temp = current_date.Month;
+							fm25v02_write(2*MONTH_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*DAY_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_date.Date;
+							fm25v02_write(2*DAY_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*HOUR_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_time.Hours;
+							fm25v02_write(2*HOUR_LIGHTING_OFF_REG+1, temp);
+							fm25v02_write(2*MINUTE_LIGHTING_OFF_REG+1, 0x00);
+							temp = current_time.Minutes;
+							fm25v02_write(2*MINUTE_LIGHTING_OFF_REG+1, temp);
+
+							osMutexRelease(Fm25v02MutexHandle);
+						}
+
+
+					}
+				}
+
 			break;
 
 		}
@@ -316,36 +593,67 @@ void ThreadMainTask(void const * argument)
 			switch(control_registers.light_control_reg&0x01) // проверяем бит фазы А
 			{
 				case(PHASE_A_SWITCH_OFF): // если выставлен бит на выключение фазы А
+
 					PHASE_A_OFF(); // выключаем фазу А
+
 				break;
 				case(PHASE_A_SWITCH_ON): // если выставлен бит на включение фазы А
-					PHASE_A_ON(); // включаем фазу А
+
+					if( ((status_registers.lighting_status_reg)&0x0001) == 0x0000 ) // если на фазе А1 нет напряжения
+					{
+						PHASE_A_ON(); // включаем фазу А
+					}
+
 				break;
 			}
 			switch(control_registers.light_control_reg&0x02) // проверяем бит фазы В
 			{
+
 				case(PHASE_B_SWITCH_OFF): // если выставлен бит на выключение фазы В
-					PHASE_B_OFF(); // выключаем фазу В
+
+					PHASE_B_OFF(); // выключаем фазу А
+
 				break;
+
 				case(PHASE_B_SWITCH_ON): //если выставлен бит на включение фазы В
-					PHASE_B_ON(); // включаем фазу В
+
+					if( ((status_registers.lighting_status_reg)&0x0002) == 0x0000 ) // если на фазе В1 нет напряжения
+					{
+						PHASE_B_ON(); // включаем фазу А
+					}
+
 				break;
+
 			}
 			switch(control_registers.light_control_reg&0x04) // проверяяем бит фазы С
 			{
+
 				case(PHASE_C_SWITCH_OFF): // если выставлен бит на выключение фазы С
-					PHASE_C_OFF(); // выключаем фазу С
+
+					PHASE_C_OFF(); // выключаем фазу А
+
 				break;
+
 				case(PHASE_C_SWITCH_ON): // если выставлен бит на включение фазы С
-					PHASE_C_ON(); // включаем фазу С
+
+					if( ((status_registers.lighting_status_reg)&0x0004) == 0x0000 ) // если на фазе В1 нет напряжения
+					{
+						PHASE_C_ON(); // включаем фазу А
+					}
+
 				break;
+
 			}
 		}
 		else if(control_registers.lighting_switching_reg == LIGHTING_OFF) // если функция освещения выключена
 		{
+
 			PHASE_A_OFF(); // отключаем фазу А
+
 			PHASE_B_OFF(); // отключаем фазу В
+
 			PHASE_C_OFF(); // отключаем фазу С
+
 		}
 
 		if(control_registers.lighting_switching_reg == LIGHTING_ON) // если функция освещения включена
@@ -366,6 +674,6 @@ void ThreadMainTask(void const * argument)
 		}
 
 
-		osDelay(1);
+		osDelay(500);
 	}
 }

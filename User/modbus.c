@@ -66,11 +66,11 @@ void read_status_registers(void)
 	status_registers.time_current_weekday_reg = (((uint16_t)status_reg_temp_h)<<8)|status_reg_temp_l;
 
 	fm25v02_read(2*ADDRESS_PROCESSED_EVENT_H_REG, &status_reg_temp_h);
-	fm25v02_read(2*ADDRESS_PROCESSED_EVENT_H_REG, &status_reg_temp_l);
+	fm25v02_read(2*ADDRESS_PROCESSED_EVENT_H_REG+1, &status_reg_temp_l);
 	status_registers.address_processed_event_h_reg = (((uint16_t)status_reg_temp_h)<<8)|status_reg_temp_l;
 
 	fm25v02_read(2*ADDRESS_PROCESSED_EVENT_L_REG, &status_reg_temp_h);
-	fm25v02_read(2*ADDRESS_PROCESSED_EVENT_L_REG, &status_reg_temp_l);
+	fm25v02_read(2*ADDRESS_PROCESSED_EVENT_L_REG+1, &status_reg_temp_l);
 	status_registers.address_processed_event_l_reg = (((uint16_t)status_reg_temp_h)<<8)|status_reg_temp_l;
 
 	fm25v02_read(2*ADDRESS_LAST_EVENT_H_REG, &status_reg_temp_h);

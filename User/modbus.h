@@ -229,12 +229,13 @@ unsigned int CRC16( unsigned char * pucFrame, unsigned int usLen );
 //-------------------------------------------------------------------------
 
 //----биты LIGHT_CONTROL_REG регистра-------------------------------
-#define PHASE_A_SWITCH_OFF 0x00
-#define PHASE_A_SWITCH_ON  0x01
-#define PHASE_B_SWITCH_OFF 0x00
-#define PHASE_B_SWITCH_ON  0x02
-#define PHASE_C_SWITCH_OFF 0x00
-#define PHASE_C_SWITCH_ON  0x04
+#define PHASE_A_SWITCH_OFF      0x00
+#define PHASE_A_SWITCH_ON       0x01
+#define PHASE_A_SWITCH_DEFAULT  0x02
+#define PHASE_B_SWITCH_OFF      0x00
+#define PHASE_B_SWITCH_ON       0x02
+#define PHASE_C_SWITCH_OFF      0x00
+#define PHASE_C_SWITCH_ON       0x04
 //------------------------------------------------------------------
 
 //----структура переменной статусных регистров---------------------
