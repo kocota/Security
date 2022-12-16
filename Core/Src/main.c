@@ -57,16 +57,21 @@ SPI_HandleTypeDef hspi2;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
+UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart3_tx;
 DMA_HandleTypeDef hdma_usart3_rx;
+DMA_HandleTypeDef hdma_usart6_rx;
+DMA_HandleTypeDef hdma_usart6_tx;
 
 osThreadId defaultTaskHandle;
 osMessageQId ModbusQueueHandle;
+osMessageQId MeterQueueHandle;
 osTimerId AT_TimerHandle;
 osTimerId Ring_Center_TimerHandle;
 osMutexId UartMutexHandle;
 osSemaphoreId TransmissionStateHandle;
 osSemaphoreId ReceiveStateHandle;
+osSemaphoreId RS485TransmissionStateHandle;
 /* USER CODE BEGIN PV */
 
 osThreadId IbuttonTaskHandle;
@@ -81,6 +86,9 @@ osThreadId ArmingTaskHandle;
 osThreadId ReadRegistersTaskHandle;
 osThreadId EventWriteTaskHandle;
 osThreadId GetCurrentTaskHandle;
+osThreadId MeterTaskHandle;
+osThreadId MeterPacketTaskHandle;
+
 
 osThreadId CurrentID;
 osMutexId Fm25v02MutexHandle;
@@ -106,6 +114,10 @@ volatile uint8_t read_rx_state;
 
 extern control_register_struct control_registers;
 
+uint8_t meter_data[256];
+uint8_t meter_rx_buffer[256];
+uint8_t meter_rx_number = 0;
+
 
 
 
@@ -121,6 +133,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_RTC_Init(void);
 static void MX_IWDG_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_USART6_UART_Init(void);
 void StartDefaultTask(void const * argument);
 void Callback_AT_Timer(void const * argument);
 void Callback_Ring_Center_Timer(void const * argument);
@@ -138,7 +151,8 @@ void ThreadArmingTask(void const * argument);
 void ThreadReadRegistersTask(void const * argument);
 void ThreadEventWriteTask(void const * argument);
 void ThreadGetCurrentTask(void const * argument);
-
+void ThreadMeterTask(void const * argument);
+void ThreadMeterPacketTask(void const * argument);
 
 
 /* USER CODE END PFP */
@@ -156,22 +170,50 @@ int _write(int file, char *ptr, int len)
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	osSemaphoreRelease(TransmissionStateHandle);
+	  if (huart->Instance == USART3)
+	  {
+		  osSemaphoreRelease(TransmissionStateHandle);
+	  }
+
+	  if (huart->Instance == USART6)
+	  {
+		  LED8_TOGGLE();
+		  osSemaphoreRelease(RS485TransmissionStateHandle);
+		  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_10, GPIO_PIN_RESET); // устанавливаем микросхему на прием
+		  HAL_UART_Receive_DMA(&huart6, &meter_data[0], 1); // включаем прием со счетчика
+
+	  }
+
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 
-	LED_VD5_TOGGLE();
-	modem_rx_buffer[modem_rx_number++] = modem_rx_data[0];
-	osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 2000);
-	HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
+	  if (huart->Instance == USART3)
+	  {
+		  LED_VD5_TOGGLE();
+		  modem_rx_buffer[modem_rx_number++] = modem_rx_data[0];
+		  osMessagePut(ModbusQueueHandle, (uint32_t)modem_rx_data[0], 2000);
+		  HAL_UART_Receive_DMA(&huart3, &modem_rx_data[0], 1);
+	  }
+
+	  if (huart->Instance == USART6)
+	  {
+		  LED7_TOGGLE();
+		  meter_data[0] = meter_data[0]&0x7F;
+		  meter_rx_buffer[meter_rx_number++] = meter_data[0];
+		  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_10, GPIO_PIN_RESET); // устанавливаем микросхему на прием
+		  HAL_UART_Receive_DMA(&huart6, &meter_data[0], 1); // включаем прием со счетчика
+
+		  //if(meter_rx_number>10){meter_rx_number=0;}
+
+	  }
 
 }
 
 void UART_DMATransmitCplt(DMA_HandleTypeDef *hdma)
 {
-	//LED_VD4_TOGGLE();
+	LED_VD4_TOGGLE();
 }
 
 /* USER CODE END 0 */
@@ -214,6 +256,7 @@ int main(void)
   MX_RTC_Init();
   MX_IWDG_Init();
   MX_ADC1_Init();
+  MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 
 
@@ -257,6 +300,10 @@ int main(void)
   osSemaphoreDef(ReceiveState);
   ReceiveStateHandle = osSemaphoreCreate(osSemaphore(ReceiveState), 1);
 
+  /* definition and creation of RS485TransmissionState */
+  osSemaphoreDef(RS485TransmissionState);
+  RS485TransmissionStateHandle = osSemaphoreCreate(osSemaphore(RS485TransmissionState), 1);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   osSemaphoreDef(ModbusPacketReceive);
@@ -284,6 +331,10 @@ int main(void)
   /* definition and creation of ModbusQueue */
   osMessageQDef(ModbusQueue, 16, uint8_t);
   ModbusQueueHandle = osMessageCreate(osMessageQ(ModbusQueue), NULL);
+
+  /* definition and creation of MeterQueue */
+  osMessageQDef(MeterQueue, 16, uint8_t);
+  MeterQueueHandle = osMessageCreate(osMessageQ(MeterQueue), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -333,6 +384,11 @@ int main(void)
   osThreadDef(GetCurrentTask, ThreadGetCurrentTask, osPriorityNormal, 0, 128);
   GetCurrentTaskHandle = osThreadCreate(osThread(GetCurrentTask), NULL);
 
+  osThreadDef(MeterTask, ThreadMeterTask, osPriorityNormal, 0, 128);
+  MeterTaskHandle = osThreadCreate(osThread(MeterTask), NULL);
+
+  osThreadDef(MeterPacketTask, ThreadMeterPacketTask, osPriorityNormal, 0, 128);
+  MeterPacketTaskHandle = osThreadCreate(osThread(MeterPacketTask), NULL);
 
   /* USER CODE END RTOS_THREADS */
 
@@ -674,6 +730,39 @@ static void MX_USART3_UART_Init(void)
 }
 
 /**
+  * @brief USART6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART6_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART6_Init 0 */
+
+  /* USER CODE END USART6_Init 0 */
+
+  /* USER CODE BEGIN USART6_Init 1 */
+
+  /* USER CODE END USART6_Init 1 */
+  huart6.Instance = USART6;
+  huart6.Init.BaudRate = 9600;
+  huart6.Init.WordLength = UART_WORDLENGTH_8B;
+  huart6.Init.StopBits = UART_STOPBITS_1;
+  huart6.Init.Parity = UART_PARITY_EVEN;
+  huart6.Init.Mode = UART_MODE_TX_RX;
+  huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart6.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART6_Init 2 */
+
+  /* USER CODE END USART6_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -681,6 +770,7 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
   /* DMA1_Stream1_IRQn interrupt configuration */
@@ -689,6 +779,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+  /* DMA2_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+  /* DMA2_Stream6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
 
 }
 
@@ -741,6 +837,9 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOG, GPIO_PIN_10, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PE6 */
   GPIO_InitStruct.Pin = GPIO_PIN_6;
@@ -819,6 +918,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PG10 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
   /*Configure GPIO pin : PE0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -871,7 +977,7 @@ void Callback_Ring_Center_Timer(void const * argument)
 {
   /* USER CODE BEGIN Callback_Ring_Center_Timer */
 
-	NVIC_SystemReset();
+	//NVIC_SystemReset();
 
   /* USER CODE END Callback_Ring_Center_Timer */
 }
